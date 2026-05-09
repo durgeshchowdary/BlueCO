@@ -1,12 +1,13 @@
 const Coach = require('../models/Coach');
 const { getPagination, paginatedResponse } = require('../utils/pagination');
+const { scopedFilter, scopedPayload } = require('../utils/scope');
 
 const getCoaches = async (req, res, next) => {
   try {
     const { page, limit, skip } = getPagination(req.query);
     const [coaches, total] = await Promise.all([
-      Coach.find().sort({ name: 1 }).skip(skip).limit(limit).lean(),
-      Coach.countDocuments(),
+      Coach.find(scopedFilter(req)).sort({ name: 1 }).skip(skip).limit(limit).lean(),
+      Coach.countDocuments(scopedFilter(req)),
     ]);
 
     res.json(paginatedResponse({ data: coaches, total, page, limit }));
@@ -17,7 +18,7 @@ const getCoaches = async (req, res, next) => {
 
 const getCoachById = async (req, res, next) => {
   try {
-    const coach = await Coach.findById(req.params.id).lean();
+    const coach = await Coach.findOne(scopedFilter(req, { _id: req.params.id })).lean();
     if (!coach) return res.status(404).json({ message: 'Coach not found' });
     res.json(coach);
   } catch (error) {
@@ -27,7 +28,7 @@ const getCoachById = async (req, res, next) => {
 
 const createCoach = async (req, res, next) => {
   try {
-    const coach = new Coach(req.body);
+    const coach = new Coach(scopedPayload(req, req.body));
     const saved = await coach.save();
     res.status(201).json(saved);
   } catch (error) {
@@ -47,13 +48,14 @@ const importCoaches = async (req, res, next) => {
         phone: String(row.phone || '').trim(),
         salary: Number(row.salary || 0),
         status: row.status === 'Inactive' ? 'Inactive' : 'Active',
+        academyId: req.user?.academyId,
       }))
       .filter((row) => row.name && row.sport && row.phone && row.salary >= 0);
 
     if (!validRows.length) return res.status(400).json({ message: 'No valid employee rows found' });
 
     const phones = validRows.map((row) => row.phone);
-    const existing = await Coach.find({ phone: { $in: phones } }).select('phone').lean();
+    const existing = await Coach.find(scopedFilter(req, { phone: { $in: phones } })).select('phone').lean();
     const existingPhones = new Set(existing.map((coach) => coach.phone));
     const seen = new Set();
     const toInsert = validRows.filter((row) => {
@@ -71,7 +73,7 @@ const importCoaches = async (req, res, next) => {
 
 const updateCoach = async (req, res, next) => {
   try {
-    const updated = await Coach.findByIdAndUpdate(req.params.id, req.body, {
+    const updated = await Coach.findOneAndUpdate(scopedFilter(req, { _id: req.params.id }), scopedPayload(req, req.body), {
       new: true,
       runValidators: true,
     });
@@ -84,7 +86,7 @@ const updateCoach = async (req, res, next) => {
 
 const deleteCoach = async (req, res, next) => {
   try {
-    const deleted = await Coach.findByIdAndDelete(req.params.id);
+    const deleted = await Coach.findOneAndDelete(scopedFilter(req, { _id: req.params.id }));
     if (!deleted) return res.status(404).json({ message: 'Coach not found' });
     res.json({ message: 'Coach removed' });
   } catch (error) {

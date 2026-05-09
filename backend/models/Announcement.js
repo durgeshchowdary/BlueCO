@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const announcementSchema = new mongoose.Schema(
   {
+    academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', index: true },
     title: { type: String, required: true },
     message: { type: String, required: true },
     audience: { type: String, default: 'All (Students + Employees)' },
@@ -28,6 +29,7 @@ announcementSchema.virtual('id').get(function getId() {
 });
 
 announcementSchema.index({ createdAt: -1 });
+announcementSchema.index({ academyId: 1, createdAt: -1 });
 announcementSchema.index({ read: 1, priority: 1 });
 
 module.exports = mongoose.model('Announcement', announcementSchema);

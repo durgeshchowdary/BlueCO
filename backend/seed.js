@@ -7,6 +7,16 @@ const Batch = require('./models/Batch');
 const Attendance = require('./models/Attendance');
 const Payment = require('./models/Payment');
 const Event = require('./models/Event');
+const User = require('./models/User');
+const Academy = require('./models/Academy');
+const Subscription = require('./models/Subscription');
+const AuditLog = require('./models/AuditLog');
+const FeaturePermission = require('./models/FeaturePermission');
+const Permission = require('./models/Permission');
+const Task = require('./models/Task');
+const { hashPassword } = require('./utils/auth');
+const { ROLES } = require('./constants/roles');
+const { PERMISSIONS, EMPLOYEE_TYPE_PERMISSIONS } = require('./constants/permissions');
 
 dotenv.config();
 
@@ -20,28 +30,67 @@ const seed = async () => {
       Attendance.deleteMany(),
       Payment.deleteMany(),
       Event.deleteMany(),
+      User.deleteMany(),
+      Academy.deleteMany(),
+      Subscription.deleteMany(),
+      AuditLog.deleteMany(),
+      FeaturePermission.deleteMany(),
+      Permission.deleteMany(),
+      Task.deleteMany(),
     ]);
 
+    await Permission.insertMany(Object.values(PERMISSIONS).map((key) => ({
+      key,
+      label: key.split(':').map((part) => part.replace(/_/g, ' ')).join(' '),
+      module: key.split(':')[0],
+      allowedRoles: key.startsWith('platform') || key.startsWith('academies') || key.startsWith('subscriptions') || key.startsWith('revenue') || key.startsWith('logs') || key.startsWith('features') || key.startsWith('settings')
+        ? [ROLES.SUPER_ADMIN]
+        : [ROLES.ACADEMY_ADMIN, ROLES.COACH, ROLES.EMPLOYEE],
+      defaultEmployeeTypes: Object.entries(EMPLOYEE_TYPE_PERMISSIONS)
+        .filter(([, permissions]) => permissions.includes(key))
+        .map(([employeeType]) => employeeType),
+      isSensitive: key.includes('delete') || key.includes('write') || key.includes('revenue') || key.includes('settings'),
+      isActive: true,
+    })));
+
+    const academy = await Academy.create({
+      name: 'Vijayawada Blues',
+      slug: 'vijayawada-blues',
+      city: 'Vijayawada',
+      status: 'active',
+      ownerName: 'Durgesh Chowdary',
+      contactEmail: 'admin@vijayawadablues.in',
+      featureFlags: ['attendance', 'payments', 'events', 'ai_reports'],
+    });
+
+    await Subscription.create({
+      academyId: academy._id,
+      plan: 'enterprise',
+      status: 'active',
+      monthlyAmount: 49999,
+      renewsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    });
+
     const coaches = [
-      { name: 'Vikram Shah', sport: 'Cricket', phone: '9321456780', salary: 65000, status: 'Active' },
-      { name: 'Priya Reddy', sport: 'Tennis', phone: '9456781230', salary: 62000, status: 'Active' },
-      { name: 'Aditya Kumar', sport: 'Football', phone: '9870012345', salary: 68000, status: 'Active' },
-      { name: 'Simran Kaur', sport: 'Basketball', phone: '9016778899', salary: 60000, status: 'Active' },
-      { name: 'Riya Nair', sport: 'Athletics', phone: '9400123456', salary: 59000, status: 'Active' },
-      { name: 'Aman Singh', sport: 'Cricket', phone: '9845123678', salary: 64000, status: 'Active' },
-      { name: 'Nisha Das', sport: 'Tennis', phone: '9123004567', salary: 61000, status: 'Active' },
-      { name: 'Sameer Khan', sport: 'Football', phone: '9988770011', salary: 67000, status: 'Inactive' },
+      { academyId: academy._id, name: 'Vikram Shah', sport: 'Cricket', phone: '9321456780', salary: 65000, status: 'Active' },
+      { academyId: academy._id, name: 'Priya Reddy', sport: 'Tennis', phone: '9456781230', salary: 62000, status: 'Active' },
+      { academyId: academy._id, name: 'Aditya Kumar', sport: 'Football', phone: '9870012345', salary: 68000, status: 'Active' },
+      { academyId: academy._id, name: 'Simran Kaur', sport: 'Basketball', phone: '9016778899', salary: 60000, status: 'Active' },
+      { academyId: academy._id, name: 'Riya Nair', sport: 'Athletics', phone: '9400123456', salary: 59000, status: 'Active' },
+      { academyId: academy._id, name: 'Aman Singh', sport: 'Cricket', phone: '9845123678', salary: 64000, status: 'Active' },
+      { academyId: academy._id, name: 'Nisha Das', sport: 'Tennis', phone: '9123004567', salary: 61000, status: 'Active' },
+      { academyId: academy._id, name: 'Sameer Khan', sport: 'Football', phone: '9988770011', salary: 67000, status: 'Inactive' },
     ];
 
     const batches = [
-      { name: 'Alpha', sport: 'Cricket', coachName: 'Vikram Shah', timing: '6:00 PM - 8:00 PM', capacity: 18 },
-      { name: 'Velocity', sport: 'Tennis', coachName: 'Priya Reddy', timing: '4:00 PM - 6:00 PM', capacity: 14 },
-      { name: 'Strikers', sport: 'Football', coachName: 'Aditya Kumar', timing: '5:00 PM - 7:00 PM', capacity: 20 },
-      { name: 'Fusion', sport: 'Basketball', coachName: 'Simran Kaur', timing: '3:00 PM - 5:00 PM', capacity: 16 },
-      { name: 'Sprinters', sport: 'Athletics', coachName: 'Riya Nair', timing: '7:00 AM - 9:00 AM', capacity: 12 },
-      { name: 'Pulse', sport: 'Cricket', coachName: 'Aman Singh', timing: '6:30 PM - 8:30 PM', capacity: 16 },
-      { name: 'Court Kings', sport: 'Tennis', coachName: 'Nisha Das', timing: '5:00 PM - 7:00 PM', capacity: 12 },
-      { name: 'Goal Collective', sport: 'Football', coachName: 'Sameer Khan', timing: '4:30 PM - 6:30 PM', capacity: 18 },
+      { academyId: academy._id, name: 'Alpha', sport: 'Cricket', coachName: 'Vikram Shah', timing: '6:00 PM - 8:00 PM', capacity: 18 },
+      { academyId: academy._id, name: 'Velocity', sport: 'Tennis', coachName: 'Priya Reddy', timing: '4:00 PM - 6:00 PM', capacity: 14 },
+      { academyId: academy._id, name: 'Strikers', sport: 'Football', coachName: 'Aditya Kumar', timing: '5:00 PM - 7:00 PM', capacity: 20 },
+      { academyId: academy._id, name: 'Fusion', sport: 'Basketball', coachName: 'Simran Kaur', timing: '3:00 PM - 5:00 PM', capacity: 16 },
+      { academyId: academy._id, name: 'Sprinters', sport: 'Athletics', coachName: 'Riya Nair', timing: '7:00 AM - 9:00 AM', capacity: 12 },
+      { academyId: academy._id, name: 'Pulse', sport: 'Cricket', coachName: 'Aman Singh', timing: '6:30 PM - 8:30 PM', capacity: 16 },
+      { academyId: academy._id, name: 'Court Kings', sport: 'Tennis', coachName: 'Nisha Das', timing: '5:00 PM - 7:00 PM', capacity: 12 },
+      { academyId: academy._id, name: 'Goal Collective', sport: 'Football', coachName: 'Sameer Khan', timing: '4:30 PM - 6:30 PM', capacity: 18 },
     ];
 
     const studentProfiles = [
@@ -86,6 +135,7 @@ const seed = async () => {
       parentName,
       monthlyFee,
       feeStatus,
+      academyId: academy._id,
       joinedAt: new Date(2024, Math.floor(Math.random() * 4), Math.floor(Math.random() * 28) + 1),
     }));
 
@@ -103,6 +153,7 @@ const seed = async () => {
           sport: student.sport,
           date,
           status: attendanceStatuses[(index + dayOffset) % attendanceStatuses.length],
+          academyId: academy._id,
         });
       });
     }
@@ -113,25 +164,72 @@ const seed = async () => {
       status: index % 4 === 0 ? 'Pending' : 'Paid',
       month: thisMonth,
       paidAt: new Date(today.getTime() - index * 24 * 60 * 60 * 1000),
+      academyId: academy._id,
     }));
 
     const events = [
-      { title: 'City Junior Cricket Cup', sport: 'Cricket', date: new Date(today.getTime() + 5 * 24 * 60 * 60 * 1000), location: 'North Arena', description: 'A competitive tournament for under-16 teams.' },
-      { title: 'Girls Tennis Clinic', sport: 'Tennis', date: new Date(today.getTime() + 8 * 24 * 60 * 60 * 1000), location: 'Court One', description: 'Skill sharpening clinic with top coaches.' },
-      { title: 'Football Skills Camp', sport: 'Football', date: new Date(today.getTime() + 12 * 24 * 60 * 60 * 1000), location: 'East Field', description: 'Focused drills for ball control and tactics.' },
-      { title: 'Weekend Basketball Challenge', sport: 'Basketball', date: new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000), location: 'South Gym', description: 'Open play and friendly match day.' },
-      { title: 'AI Training Showcase', sport: 'Multi-sport', date: new Date(today.getTime() + 18 * 24 * 60 * 60 * 1000), location: 'Main Hall', description: 'Presenting AI-powered progress reports to parents.' },
-      { title: 'Speed & Agility Meet', sport: 'Athletics', date: new Date(today.getTime() + 10 * 24 * 60 * 60 * 1000), location: 'Track Stadium', description: 'Sprint and endurance assessments for young athletes.' },
-      { title: 'Coach Roundtable', sport: 'Multi-sport', date: new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000), location: 'Conference Hall', description: 'Planning session for upcoming academy programs.' },
-      { title: 'Parent Showcase Day', sport: 'Multi-sport', date: new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000), location: 'Main Arena', description: 'Parents invited to view student progress and training results.' },
+      { academyId: academy._id, title: 'City Junior Cricket Cup', sport: 'Cricket', date: new Date(today.getTime() + 5 * 24 * 60 * 60 * 1000), location: 'North Arena', description: 'A competitive tournament for under-16 teams.' },
+      { academyId: academy._id, title: 'Girls Tennis Clinic', sport: 'Tennis', date: new Date(today.getTime() + 8 * 24 * 60 * 60 * 1000), location: 'Court One', description: 'Skill sharpening clinic with top coaches.' },
+      { academyId: academy._id, title: 'Football Skills Camp', sport: 'Football', date: new Date(today.getTime() + 12 * 24 * 60 * 60 * 1000), location: 'East Field', description: 'Focused drills for ball control and tactics.' },
+      { academyId: academy._id, title: 'Weekend Basketball Challenge', sport: 'Basketball', date: new Date(today.getTime() + 3 * 24 * 60 * 60 * 1000), location: 'South Gym', description: 'Open play and friendly match day.' },
+      { academyId: academy._id, title: 'AI Training Showcase', sport: 'Multi-sport', date: new Date(today.getTime() + 18 * 24 * 60 * 60 * 1000), location: 'Main Hall', description: 'Presenting AI-powered progress reports to parents.' },
+      { academyId: academy._id, title: 'Speed & Agility Meet', sport: 'Athletics', date: new Date(today.getTime() + 10 * 24 * 60 * 60 * 1000), location: 'Track Stadium', description: 'Sprint and endurance assessments for young athletes.' },
+      { academyId: academy._id, title: 'Coach Roundtable', sport: 'Multi-sport', date: new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000), location: 'Conference Hall', description: 'Planning session for upcoming academy programs.' },
+      { academyId: academy._id, title: 'Parent Showcase Day', sport: 'Multi-sport', date: new Date(today.getTime() + 15 * 24 * 60 * 60 * 1000), location: 'Main Arena', description: 'Parents invited to view student progress and training results.' },
     ];
 
-    await Student.insertMany(students);
+    const insertedStudents = await Student.insertMany(students);
     await Coach.insertMany(coaches);
-    await Batch.insertMany(batches);
+    const insertedBatches = await Batch.insertMany(batches);
     await Attendance.insertMany(attendance);
     await Payment.insertMany(payments);
     await Event.insertMany(events);
+
+    await User.insertMany([
+      {
+        name: 'Platform Owner',
+        email: 'super@playgrid.ai',
+        passwordHash: hashPassword('PlayGrid@123'),
+        role: ROLES.SUPER_ADMIN,
+        permissions: ['*'],
+      },
+      {
+        name: 'Academy Admin',
+        email: 'admin@vijayawadablues.in',
+        passwordHash: hashPassword('PlayGrid@123'),
+        role: ROLES.ACADEMY_ADMIN,
+        academyId: academy._id,
+        permissions: [],
+      },
+      {
+        name: 'Vikram Coach',
+        email: 'coach@vijayawadablues.in',
+        passwordHash: hashPassword('PlayGrid@123'),
+        role: ROLES.COACH,
+        academyId: academy._id,
+        assignedStudents: insertedStudents.slice(0, 8).map((student) => student._id),
+        assignedBatches: insertedBatches.slice(0, 2).map((batch) => batch._id),
+        permissions: [],
+      },
+      {
+        name: 'Accounts Employee',
+        email: 'accountant@vijayawadablues.in',
+        passwordHash: hashPassword('PlayGrid@123'),
+        role: ROLES.EMPLOYEE,
+        academyId: academy._id,
+        employeeType: 'accountant',
+        permissions: [],
+      },
+      {
+        name: 'Support Employee',
+        email: 'support@vijayawadablues.in',
+        passwordHash: hashPassword('PlayGrid@123'),
+        role: ROLES.EMPLOYEE,
+        academyId: academy._id,
+        employeeType: 'support_staff',
+        permissions: [],
+      },
+    ]);
 
     console.log('Data seeded successfully');
     process.exit();

@@ -12,33 +12,70 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const demoRequestRoutes = require('./routes/demoRequestRoutes');
 const ticketRoutes = require('./routes/ticketRoutes');
 const announcementRoutes = require('./routes/announcementRoutes');
+const authRoutes = require('./routes/authRoutes');
+const superAdminRoutes = require('./routes/superAdminRoutes');
+const academyRoutes = require('./routes/academyRoutes');
+const coachPortalRoutes = require('./routes/coachPortalRoutes');
+const employeeRoutes = require('./routes/employeeRoutes');
+const { authenticateUser, requireRole, requireAcademyScope } = require('./middleware/authMiddleware');
+const { ROLES } = require('./constants/roles');
 
 dotenv.config();
 
 const app = express();
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || '*',
+  origin(origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map((item) => item.trim()) : []),
+    ];
+
+    if (!origin || allowedOrigins.includes(origin) || process.env.CORS_ORIGIN === '*') {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`CORS blocked origin: ${origin}`));
+  },
+  credentials: false,
 }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     message: 'PlayGrid AI backend is running',
     database: global.dbReady ? 'connected' : 'disconnected',
+    timestamp: new Date().toISOString(),
   });
 });
 
-app.use('/api/students', studentRoutes);
-app.use('/api/coaches', coachRoutes);
-app.use('/api/batches', batchRoutes);
-app.use('/api/attendance', attendanceRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/events', eventRoutes);
-app.use('/api/dashboard', dashboardRoutes);
+const academyOperator = [
+  authenticateUser,
+  requireRole(ROLES.SUPER_ADMIN, ROLES.ACADEMY_ADMIN),
+  requireAcademyScope,
+];
+
+app.use('/api/auth', authRoutes);
+app.use('/api/super-admin', superAdminRoutes);
+app.use('/api/academy', academyRoutes);
+app.use('/api/coach', coachPortalRoutes);
+app.use('/api/employee', employeeRoutes);
+
+app.use('/api/students', academyOperator, studentRoutes);
+app.use('/api/coaches', academyOperator, coachRoutes);
+app.use('/api/batches', academyOperator, batchRoutes);
+app.use('/api/attendance', academyOperator, attendanceRoutes);
+app.use('/api/payments', academyOperator, paymentRoutes);
+app.use('/api/events', academyOperator, eventRoutes);
+app.use('/api/dashboard', academyOperator, dashboardRoutes);
 app.use('/api/demo-requests', demoRequestRoutes);
-app.use('/api/tickets', ticketRoutes);
-app.use('/api/announcements', announcementRoutes);
+app.use('/api/tickets', academyOperator, ticketRoutes);
+app.use('/api/announcements', academyOperator, announcementRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route not found: ${req.method} ${req.originalUrl}` });

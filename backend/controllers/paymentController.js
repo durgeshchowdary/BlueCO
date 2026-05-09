@@ -1,12 +1,13 @@
 const Payment = require('../models/Payment');
 const { getPagination, paginatedResponse } = require('../utils/pagination');
+const { scopedFilter, scopedPayload } = require('../utils/scope');
 
 const getPayments = async (req, res, next) => {
   try {
     const { page, limit, skip } = getPagination(req.query);
     const [payments, total] = await Promise.all([
-      Payment.find().sort({ paidAt: -1 }).skip(skip).limit(limit).lean(),
-      Payment.countDocuments(),
+      Payment.find(scopedFilter(req)).sort({ paidAt: -1 }).skip(skip).limit(limit).lean(),
+      Payment.countDocuments(scopedFilter(req)),
     ]);
 
     res.json(paginatedResponse({ data: payments, total, page, limit }));
@@ -17,7 +18,7 @@ const getPayments = async (req, res, next) => {
 
 const getPaymentById = async (req, res, next) => {
   try {
-    const payment = await Payment.findById(req.params.id).lean();
+    const payment = await Payment.findOne(scopedFilter(req, { _id: req.params.id })).lean();
     if (!payment) return res.status(404).json({ message: 'Payment not found' });
     res.json(payment);
   } catch (error) {
@@ -27,7 +28,7 @@ const getPaymentById = async (req, res, next) => {
 
 const createPayment = async (req, res, next) => {
   try {
-    const payment = new Payment(req.body);
+    const payment = new Payment(scopedPayload(req, req.body));
     const saved = await payment.save();
     res.status(201).json(saved);
   } catch (error) {
@@ -47,6 +48,7 @@ const importPayments = async (req, res, next) => {
         status: row.status === 'Pending' ? 'Pending' : 'Paid',
         month: String(row.month || '').trim(),
         paidAt: row.paidAt ? new Date(row.paidAt) : new Date(),
+        academyId: req.user?.academyId,
       }))
       .filter((row) => row.studentName && row.amount > 0 && row.month);
 
@@ -54,10 +56,10 @@ const importPayments = async (req, res, next) => {
 
     const names = validRows.map((row) => row.studentName);
     const months = validRows.map((row) => row.month);
-    const existing = await Payment.find({
+    const existing = await Payment.find(scopedFilter(req, {
       studentName: { $in: names },
       month: { $in: months },
-    }).select('studentName month amount').lean();
+    })).select('studentName month amount').lean();
     const existingKeys = new Set(existing.map((payment) => `${payment.studentName.toLowerCase()}|${payment.month.toLowerCase()}|${Number(payment.amount)}`));
     const seen = new Set();
     const toInsert = validRows.filter((row) => {
@@ -76,7 +78,7 @@ const importPayments = async (req, res, next) => {
 
 const updatePayment = async (req, res, next) => {
   try {
-    const updated = await Payment.findByIdAndUpdate(req.params.id, req.body, {
+    const updated = await Payment.findOneAndUpdate(scopedFilter(req, { _id: req.params.id }), scopedPayload(req, req.body), {
       new: true,
       runValidators: true,
     });
@@ -89,7 +91,7 @@ const updatePayment = async (req, res, next) => {
 
 const deletePayment = async (req, res, next) => {
   try {
-    const deleted = await Payment.findByIdAndDelete(req.params.id);
+    const deleted = await Payment.findOneAndDelete(scopedFilter(req, { _id: req.params.id }));
     if (!deleted) return res.status(404).json({ message: 'Payment not found' });
     res.json({ message: 'Payment removed' });
   } catch (error) {

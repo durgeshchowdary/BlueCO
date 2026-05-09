@@ -1,5 +1,6 @@
 const Event = require('../models/Event');
 const { getPagination, paginatedResponse } = require('../utils/pagination');
+const { scopedFilter, scopedPayload } = require('../utils/scope');
 
 const normalizeEventPayload = (payload) => {
   const date = payload.date || payload.startDate;
@@ -24,8 +25,8 @@ const getEvents = async (req, res, next) => {
   try {
     const { page, limit, skip } = getPagination(req.query);
     const [events, total] = await Promise.all([
-      Event.find().sort({ date: 1 }).skip(skip).limit(limit).lean(),
-      Event.countDocuments(),
+      Event.find(scopedFilter(req)).sort({ date: 1 }).skip(skip).limit(limit).lean(),
+      Event.countDocuments(scopedFilter(req)),
     ]);
 
     res.json(paginatedResponse({ data: events, total, page, limit }));
@@ -36,7 +37,7 @@ const getEvents = async (req, res, next) => {
 
 const getEventById = async (req, res, next) => {
   try {
-    const event = await Event.findById(req.params.id).lean();
+    const event = await Event.findOne(scopedFilter(req, { _id: req.params.id })).lean();
     if (!event) return res.status(404).json({ message: 'Event not found' });
     res.json(event);
   } catch (error) {
@@ -46,7 +47,7 @@ const getEventById = async (req, res, next) => {
 
 const createEvent = async (req, res, next) => {
   try {
-    const event = new Event(normalizeEventPayload(req.body));
+    const event = new Event(scopedPayload(req, normalizeEventPayload(req.body)));
     const saved = await event.save();
     res.status(201).json(saved);
   } catch (error) {
@@ -56,7 +57,7 @@ const createEvent = async (req, res, next) => {
 
 const updateEvent = async (req, res, next) => {
   try {
-    const updated = await Event.findByIdAndUpdate(req.params.id, normalizeEventPayload(req.body), {
+    const updated = await Event.findOneAndUpdate(scopedFilter(req, { _id: req.params.id }), scopedPayload(req, normalizeEventPayload(req.body)), {
       new: true,
       runValidators: true,
     });
@@ -69,7 +70,7 @@ const updateEvent = async (req, res, next) => {
 
 const deleteEvent = async (req, res, next) => {
   try {
-    const deleted = await Event.findByIdAndDelete(req.params.id);
+    const deleted = await Event.findOneAndDelete(scopedFilter(req, { _id: req.params.id }));
     if (!deleted) return res.status(404).json({ message: 'Event not found' });
     res.json({ message: 'Event removed' });
   } catch (error) {

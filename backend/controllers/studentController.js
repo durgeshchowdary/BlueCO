@@ -1,12 +1,13 @@
 const Student = require('../models/Student');
 const { getPagination, paginatedResponse } = require('../utils/pagination');
+const { coachStudentFilter, scopedFilter, scopedPayload } = require('../utils/scope');
 
 const getStudents = async (req, res, next) => {
   try {
     const { page, limit, skip } = getPagination(req.query);
     const [students, total] = await Promise.all([
-      Student.find().sort({ joinedAt: -1 }).skip(skip).limit(limit).lean(),
-      Student.countDocuments(),
+      Student.find(coachStudentFilter(req)).sort({ joinedAt: -1 }).skip(skip).limit(limit).lean(),
+      Student.countDocuments(coachStudentFilter(req)),
     ]);
 
     res.json(paginatedResponse({ data: students, total, page, limit }));
@@ -17,7 +18,7 @@ const getStudents = async (req, res, next) => {
 
 const getStudentById = async (req, res, next) => {
   try {
-    const student = await Student.findById(req.params.id).lean();
+    const student = await Student.findOne(coachStudentFilter(req, { _id: req.params.id })).lean();
     if (!student) return res.status(404).json({ message: 'Student not found' });
     res.json(student);
   } catch (error) {
@@ -27,7 +28,7 @@ const getStudentById = async (req, res, next) => {
 
 const createStudent = async (req, res, next) => {
   try {
-    const student = new Student(req.body);
+    const student = new Student(scopedPayload(req, req.body));
     const saved = await student.save();
     res.status(201).json(saved);
   } catch (error) {
@@ -51,13 +52,14 @@ const importStudents = async (req, res, next) => {
         monthlyFee: Number(row.monthlyFee || 0),
         feeStatus: row.feeStatus === 'Paid' ? 'Paid' : 'Pending',
         joinedAt: row.joinedAt ? new Date(row.joinedAt) : new Date(),
+        academyId: req.user?.academyId,
       }))
       .filter((row) => row.name && row.age > 0 && row.sport && row.batch && row.phone && row.parentName && row.monthlyFee >= 0);
 
     if (!validRows.length) return res.status(400).json({ message: 'No valid student rows found' });
 
     const phones = validRows.map((row) => row.phone);
-    const existing = await Student.find({ phone: { $in: phones } }).select('phone').lean();
+    const existing = await Student.find(scopedFilter(req, { phone: { $in: phones } })).select('phone').lean();
     const existingPhones = new Set(existing.map((student) => student.phone));
     const seen = new Set();
     const toInsert = validRows.filter((row) => {
@@ -75,7 +77,7 @@ const importStudents = async (req, res, next) => {
 
 const updateStudent = async (req, res, next) => {
   try {
-    const updated = await Student.findByIdAndUpdate(req.params.id, req.body, {
+    const updated = await Student.findOneAndUpdate(scopedFilter(req, { _id: req.params.id }), scopedPayload(req, req.body), {
       new: true,
       runValidators: true,
     });
@@ -88,7 +90,7 @@ const updateStudent = async (req, res, next) => {
 
 const deleteStudent = async (req, res, next) => {
   try {
-    const deleted = await Student.findByIdAndDelete(req.params.id);
+    const deleted = await Student.findOneAndDelete(scopedFilter(req, { _id: req.params.id }));
     if (!deleted) return res.status(404).json({ message: 'Student not found' });
     res.json({ message: 'Student removed' });
   } catch (error) {

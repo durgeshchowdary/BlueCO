@@ -1,5 +1,6 @@
 const Announcement = require('../models/Announcement');
 const { getPagination, paginatedResponse } = require('../utils/pagination');
+const { scopedFilter, scopedPayload } = require('../utils/scope');
 
 const decorateAnnouncement = (announcement) => {
   const item = announcement.toObject ? announcement.toObject() : announcement;
@@ -17,8 +18,8 @@ const getAnnouncements = async (req, res, next) => {
   try {
     const { page, limit, skip } = getPagination(req.query);
     const [announcements, total] = await Promise.all([
-      Announcement.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-      Announcement.countDocuments(),
+      Announcement.find(scopedFilter(req)).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+      Announcement.countDocuments(scopedFilter(req)),
     ]);
 
     res.json(
@@ -37,7 +38,7 @@ const getAnnouncements = async (req, res, next) => {
 const createAnnouncement = async (req, res, next) => {
   try {
     const announcement = await Announcement.create({
-      ...req.body,
+      ...scopedPayload(req, req.body),
       type: req.body.type || req.body.audience || 'General',
       priority: req.body.priority || 'Normal',
       time: req.body.time || 'Just now',
@@ -51,7 +52,7 @@ const createAnnouncement = async (req, res, next) => {
 
 const updateAnnouncement = async (req, res, next) => {
   try {
-    const announcement = await Announcement.findByIdAndUpdate(req.params.id, req.body, {
+    const announcement = await Announcement.findOneAndUpdate(scopedFilter(req, { _id: req.params.id }), scopedPayload(req, req.body), {
       new: true,
       runValidators: true,
     });
@@ -65,7 +66,7 @@ const updateAnnouncement = async (req, res, next) => {
 
 const markAllRead = async (req, res, next) => {
   try {
-    await Announcement.updateMany({ read: false }, { read: true });
+    await Announcement.updateMany(scopedFilter(req, { read: false }), { read: true });
     res.json({ message: 'All announcements marked as read' });
   } catch (error) {
     next(error);

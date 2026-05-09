@@ -7,10 +7,17 @@ const {
   updateCoach,
   deleteCoach,
 } = require('../controllers/coachController');
+const { requirePermission } = require('../middleware/authMiddleware');
+const { PERMISSIONS } = require('../constants/permissions');
 
 const router = express.Router();
-router.route('/').get(getCoaches).post(createCoach);
-router.post('/import', importCoaches);
-router.route('/:id').get(getCoachById).put(updateCoach).delete(deleteCoach);
+router.route('/')
+  .get(requirePermission(PERMISSIONS.COACHES_READ), getCoaches)
+  .post(requirePermission(PERMISSIONS.COACHES_WRITE), createCoach);
+router.post('/import', requirePermission(PERMISSIONS.COACHES_WRITE), importCoaches);
+router.route('/:id')
+  .get(requirePermission(PERMISSIONS.COACHES_READ), getCoachById)
+  .put(requirePermission(PERMISSIONS.COACHES_WRITE), updateCoach)
+  .delete(requirePermission(PERMISSIONS.COACHES_DELETE), deleteCoach);
 
 module.exports = router;

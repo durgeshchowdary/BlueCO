@@ -4,6 +4,7 @@ const Batch = require('../models/Batch');
 const Attendance = require('../models/Attendance');
 const Payment = require('../models/Payment');
 const Event = require('../models/Event');
+const { scopedFilter } = require('../utils/scope');
 
 const getDashboardSummary = async (req, res, next) => {
   try {
@@ -37,6 +38,7 @@ const getDashboardSummary = async (req, res, next) => {
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(startOfDay);
     endOfDay.setDate(endOfDay.getDate() + 1);
+    const scope = scopedFilter(req);
 
     const [
       totalStudents,
@@ -54,19 +56,21 @@ const getDashboardSummary = async (req, res, next) => {
       upcomingEventsList,
       pendingFeeStudentsList,
     ] = await Promise.all([
-      Student.countDocuments(),
-      Coach.countDocuments({ status: 'Active' }),
-      Batch.countDocuments(),
-      Student.countDocuments({ feeStatus: 'Pending' }),
+      Student.countDocuments(scope),
+      Coach.countDocuments(scopedFilter(req, { status: 'Active' })),
+      Batch.countDocuments(scope),
+      Student.countDocuments(scopedFilter(req, { feeStatus: 'Pending' })),
       Payment.aggregate([
-        { $match: { status: 'Paid', month: currentMonth } },
+        { $match: scopedFilter(req, { status: 'Paid', month: currentMonth }) },
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
       Payment.aggregate([
         {
           $match: {
-            status: 'Paid',
-            month: { $in: monthWindows.map((item) => item.monthFull) },
+            ...scopedFilter(req, {
+              status: 'Paid',
+              month: { $in: monthWindows.map((item) => item.monthFull) },
+            }),
           },
         },
         { $group: { _id: '$month', total: { $sum: '$amount' } } },
@@ -74,37 +78,41 @@ const getDashboardSummary = async (req, res, next) => {
       Promise.all(
         dayWindows.map(async (window) => {
           const present = await Attendance.countDocuments({
-            status: 'Present',
-            date: { $gte: window.start, $lt: window.end },
+            ...scopedFilter(req, {
+              status: 'Present',
+              date: { $gte: window.start, $lt: window.end },
+            }),
           });
 
           return { day: window.day, count: present };
         }),
       ),
       Attendance.aggregate([
-        { $match: { date: { $gte: startOfDay, $lt: endOfDay } } },
+        { $match: scopedFilter(req, { date: { $gte: startOfDay, $lt: endOfDay } }) },
         { $group: { _id: '$status', count: { $sum: 1 } } },
       ]),
-      Event.countDocuments({ date: { $gte: startOfDay } }),
+      Event.countDocuments(scopedFilter(req, { date: { $gte: startOfDay } })),
       Student.aggregate([
+        { $match: scope },
         { $group: { _id: '$sport', count: { $sum: 1 } } },
         { $project: { sport: '$_id', count: 1, _id: 0 } },
       ]),
       Student.aggregate([
+        { $match: scope },
         { $group: { _id: '$feeStatus', count: { $sum: 1 } } },
         { $project: { status: '$_id', count: 1, _id: 0 } },
       ]),
-      Payment.find()
+      Payment.find(scope)
         .select('studentName amount status month paidAt')
         .sort({ paidAt: -1 })
         .limit(5)
         .lean(),
-      Event.find({ date: { $gte: startOfDay } })
+      Event.find(scopedFilter(req, { date: { $gte: startOfDay } }))
         .select('title sport date location')
         .sort({ date: 1 })
         .limit(5)
         .lean(),
-      Student.find({ feeStatus: 'Pending' })
+      Student.find(scopedFilter(req, { feeStatus: 'Pending' }))
         .select('name sport monthlyFee')
         .sort({ joinedAt: -1 })
         .limit(10)

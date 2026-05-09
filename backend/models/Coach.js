@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const coachSchema = new mongoose.Schema({
+  academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', index: true },
   name: { type: String, required: true },
   sport: { type: String, required: true },
   phone: { type: String, required: true },
@@ -9,6 +10,7 @@ const coachSchema = new mongoose.Schema({
 });
 
 coachSchema.index({ name: 1 });
+coachSchema.index({ academyId: 1, status: 1 });
 coachSchema.index({ status: 1 });
 
 module.exports = mongoose.model('Coach', coachSchema);

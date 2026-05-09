@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 const studentSchema = new mongoose.Schema({
+  academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', index: true },
   name: { type: String, required: true },
   age: { type: Number, required: true },
   sport: { type: String, required: true },
@@ -13,6 +14,7 @@ const studentSchema = new mongoose.Schema({
 });
 
 studentSchema.index({ joinedAt: -1 });
+studentSchema.index({ academyId: 1, joinedAt: -1 });
 studentSchema.index({ feeStatus: 1, joinedAt: -1 });
 studentSchema.index({ sport: 1 });
 studentSchema.index({ batch: 1 });
