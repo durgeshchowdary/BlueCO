@@ -1,0 +1,13 @@
+node_modules
+.env
+.env.local
+.DS_Store
+.next
+dist
+build
+*.log
+*.tsbuildinfo
+frontend/.next
+frontend/tsconfig.tsbuildinfo
+frontend/next.out.log
+frontend/next.err.log

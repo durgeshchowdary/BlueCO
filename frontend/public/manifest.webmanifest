@@ -1,0 +1,17 @@
+{
+  "name": "PlayGrid AI",
+  "short_name": "PlayGrid",
+  "description": "Premium sports academy management for CRM, attendance, payments, events, HRMS, and KPI dashboards.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f5e8",
+  "theme_color": "#2563eb",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
