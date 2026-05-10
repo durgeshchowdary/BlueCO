@@ -18,6 +18,7 @@ import Topbar from '../../components/Topbar';
 import Loading from '../../components/Loading';
 import EmptyState from '../../components/EmptyState';
 import api from '../../lib/api';
+import { isAuthenticated } from '../../lib/auth';
 
 type SummaryData = {
   totalStudents?: number;
@@ -54,9 +55,7 @@ export default function KPIPage() {
   const [showTrialBanner, setShowTrialBanner] = useState(true);
 
   useEffect(() => {
-    const isAuth = localStorage.getItem('isAuthenticated');
-
-    if (!isAuth) {
+    if (!isAuthenticated()) {
       window.location.href = '/login';
       return;
     }

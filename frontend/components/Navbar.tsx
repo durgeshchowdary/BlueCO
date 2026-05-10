@@ -59,18 +59,18 @@ export default function Navbar() {
           </div>
         </nav>
 
-        <div className="hidden items-center gap-4 md:flex">
+        <div className="flex items-center gap-3 md:gap-4">
           {isLanding ? (
             <>
               <Link
                 href="/login"
-                className="text-sm font-bold text-white transition hover:text-cyan-400"
+                className="text-xs font-bold text-white transition hover:text-cyan-400 md:text-sm"
               >
                 Login
               </Link>
               <Link
                 href="#contact"
-                className="rounded-full bg-cyan-500 px-6 py-2.5 text-sm font-black text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-400"
+                className="rounded-full bg-cyan-500 px-3 py-2 text-[10px] font-black text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-400 md:px-6 md:py-2.5 md:text-sm"
               >
                 Start Free Trial
               </Link>
@@ -115,6 +115,38 @@ export default function Navbar() {
                 {link.label}
               </Link>
             ))}
+          </div>
+
+          <div className="mt-6">
+            {isLanding ? (
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex-1 rounded-2xl border border-white/10 py-3 text-center text-sm font-bold text-white transition hover:bg-white/5"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="#contact"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex-[1.5] rounded-2xl bg-cyan-500 py-3 text-center text-sm font-black text-slate-950 shadow-lg shadow-cyan-500/20 transition hover:bg-cyan-400"
+                >
+                  Start Free Trial
+                </Link>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  localStorage.removeItem('isAuthenticated');
+                  window.location.href = '/';
+                }}
+                className="w-full rounded-2xl px-4 py-3 text-left text-sm font-bold text-red-500 hover:bg-slate-50"
+              >
+                Logout
+              </button>
+            )}
           </div>
         </div>
       )}

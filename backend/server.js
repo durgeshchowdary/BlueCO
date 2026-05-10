@@ -17,8 +17,7 @@ const superAdminRoutes = require('./routes/superAdminRoutes');
 const academyRoutes = require('./routes/academyRoutes');
 const coachPortalRoutes = require('./routes/coachPortalRoutes');
 const employeeRoutes = require('./routes/employeeRoutes');
-const { authenticateUser, requireRole, requireAcademyScope } = require('./middleware/authMiddleware');
-const { ROLES } = require('./constants/roles');
+const userRoutes = require('./routes/userRoutes');
 
 dotenv.config();
 
@@ -54,28 +53,24 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-const academyOperator = [
-  authenticateUser,
-  requireRole(ROLES.SUPER_ADMIN, ROLES.ACADEMY_ADMIN),
-  requireAcademyScope,
-];
-
 app.use('/api/auth', authRoutes);
 app.use('/api/super-admin', superAdminRoutes);
 app.use('/api/academy', academyRoutes);
 app.use('/api/coach', coachPortalRoutes);
 app.use('/api/employee', employeeRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/student', userRoutes);
 
-app.use('/api/students', academyOperator, studentRoutes);
-app.use('/api/coaches', academyOperator, coachRoutes);
-app.use('/api/batches', academyOperator, batchRoutes);
-app.use('/api/attendance', academyOperator, attendanceRoutes);
-app.use('/api/payments', academyOperator, paymentRoutes);
-app.use('/api/events', academyOperator, eventRoutes);
-app.use('/api/dashboard', academyOperator, dashboardRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/api/coaches', coachRoutes);
+app.use('/api/batches', batchRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/events', eventRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/demo-requests', demoRequestRoutes);
-app.use('/api/tickets', academyOperator, ticketRoutes);
-app.use('/api/announcements', academyOperator, announcementRoutes);
+app.use('/api/tickets', ticketRoutes);
+app.use('/api/announcements', announcementRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ message: `Route not found: ${req.method} ${req.originalUrl}` });

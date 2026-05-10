@@ -3,6 +3,7 @@ const ROLES = Object.freeze({
   ACADEMY_ADMIN: 'academy_admin',
   COACH: 'coach',
   EMPLOYEE: 'employee',
+  STUDENT: 'student',
 });
 
 const EMPLOYEE_TYPES = Object.freeze({
@@ -19,6 +20,7 @@ const ROLE_HOME = Object.freeze({
   [ROLES.ACADEMY_ADMIN]: '/academy/dashboard',
   [ROLES.COACH]: '/coach/dashboard',
   [ROLES.EMPLOYEE]: '/employee/dashboard',
+  [ROLES.STUDENT]: '/dashboard',
 });
 
 module.exports = { ROLES, EMPLOYEE_TYPES, ROLE_HOME };

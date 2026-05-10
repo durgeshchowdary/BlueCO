@@ -30,9 +30,24 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const isLoginRequest = String(error.config?.url || '').includes('/auth/login');
+    const requestUrl = String(error.config?.url || '');
+    const isLoginRequest = requestUrl.includes('/auth/login');
+    const legacyPrefixes = [
+      '/students',
+      '/coaches',
+      '/batches',
+      '/attendance',
+      '/payments',
+      '/events',
+      '/dashboard',
+      '/tickets',
+      '/announcements',
+    ];
+    const isLegacyModuleRequest = legacyPrefixes.some(
+      (prefix) => requestUrl === prefix || requestUrl.startsWith(`${prefix}/`),
+    );
 
-    if (typeof window !== 'undefined' && !isLoginRequest && [401, 403].includes(error.response?.status)) {
+    if (typeof window !== 'undefined' && !isLoginRequest && !isLegacyModuleRequest && [401, 403].includes(error.response?.status)) {
       localStorage.removeItem('playgrid_token');
       localStorage.removeItem('playgrid_user');
       localStorage.removeItem('playgrid_role');

@@ -11,6 +11,7 @@ import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import PaginationControls from '../../components/PaginationControls';
 import api from '../../lib/api';
+import { isAuthenticated } from '../../lib/auth';
 
 type EventRecord = {
   _id: string;
@@ -75,7 +76,7 @@ function EventsContent() {
   }, [pagination.limit]);
 
   useEffect(() => {
-    if (!localStorage.getItem('isAuthenticated')) {
+    if (!isAuthenticated()) {
       window.location.href = '/login';
       return;
     }

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Activity, BarChart3, CircleDollarSign, ShieldCheck } from 'lucide-react';
 import api from '../lib/api';
 import RoleShell from './RoleShell';
-import type { Role } from '../lib/auth';
+import { roleLabels, type Role } from '../lib/auth';
 import { can } from '../lib/permissions';
 
 const endpoints: Record<Role, string> = {
@@ -12,6 +12,7 @@ const endpoints: Record<Role, string> = {
   academy_admin: '/academy/dashboard/summary',
   coach: '/coach/dashboard',
   employee: '/employee/dashboard',
+  student: '/dashboard/summary',
 };
 
 export default function RoleDashboard({
@@ -135,10 +136,18 @@ export default function RoleDashboard({
         </div>
 
         <div className="rounded-3xl border border-white/10 bg-white/[0.06] p-6">
-          <h3 className="text-lg font-black">Live Payload</h3>
-          <pre className="mt-5 max-h-80 overflow-auto rounded-2xl bg-slate-950/70 p-4 text-xs text-slate-300">
-            {JSON.stringify(data, null, 2)}
-          </pre>
+          <h3 className="text-lg font-black">Secure Session</h3>
+          <div className="mt-5 space-y-3 text-sm font-semibold text-slate-300">
+            <p className="rounded-2xl bg-white/[0.06] px-4 py-3">
+              API data loaded through the protected {roleLabels[role]} workspace.
+            </p>
+            <p className="rounded-2xl bg-white/[0.06] px-4 py-3">
+              Navigation and actions are filtered by role and permissions.
+            </p>
+            <p className="rounded-2xl bg-white/[0.06] px-4 py-3">
+              Unauthorized enterprise routes are blocked before rendering.
+            </p>
+          </div>
         </div>
       </div>
         </>

@@ -1,6 +1,7 @@
 'use client';
 
 import { ChangeEvent, FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { 
   Bell,
   Dribbble,
@@ -20,6 +21,7 @@ import Toast from '@/components/Toast';
 import ToastContainer from '@/components/ToastContainer';
 import Modal from '@/components/Modal';
 import api from '@/lib/api';
+import { isAuthenticated } from '@/lib/auth';
 
 interface Batch {
   _id: string;
@@ -61,8 +63,7 @@ export default function BatchesPage() {
   }, []);
 
   useEffect(() => {
-    const isAuth = localStorage.getItem('isAuthenticated');
-    if (!isAuth) {
+    if (!isAuthenticated()) {
       window.location.href = '/login';
       return;
     }
@@ -185,21 +186,21 @@ export default function BatchesPage() {
         <header className="flex items-center justify-between border-b border-slate-200 bg-white px-8 py-4">
           <h2 className="text-xl font-bold text-slate-800">Training Sessions</h2>
           <div className="flex items-center gap-5 text-slate-500">
-            <button className="relative p-1 hover:text-blue-600">
+            <Link href="/announcements" aria-label="Open notifications" title="Notifications" className="relative p-1 hover:text-blue-600">
               <Bell size={20} />
               <span className="absolute right-0 top-0 flex h-2 w-2 rounded-full bg-red-500"></span>
-            </button>
-            <button className="p-1 hover:text-blue-600">
+            </Link>
+            <Link href="/chat" aria-label="Open messages" title="Messages" className="p-1 hover:text-blue-600">
               <MessageSquare size={20} />
-            </button>
+            </Link>
             <button className="p-1 hover:text-blue-600">
               <Moon size={20} />
             </button>
-            <div className="ml-2 h-8 w-8 overflow-hidden rounded-full bg-slate-200">
+            <Link href="/settings" aria-label="Open profile settings" title="Profile" className="ml-2 h-8 w-8 overflow-hidden rounded-full bg-slate-200">
               <div className="flex h-full w-full items-center justify-center bg-blue-100 text-blue-600 font-bold text-xs">
                 <User size={18} />
               </div>
-            </div>
+            </Link>
           </div>
         </header>
 

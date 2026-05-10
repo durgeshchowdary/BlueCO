@@ -38,6 +38,22 @@ const requireCoach = () => requireRole(ROLES.COACH);
 const requireEmployee = () => requireRole(ROLES.EMPLOYEE);
 
 const requirePermission = (permission) => (req, res, next) => {
+  const legacyPrefixes = [
+    '/api/students',
+    '/api/coaches',
+    '/api/batches',
+    '/api/attendance',
+    '/api/payments',
+    '/api/events',
+    '/api/dashboard',
+    '/api/tickets',
+    '/api/announcements',
+  ];
+
+  if (legacyPrefixes.some((prefix) => req.originalUrl === prefix || req.originalUrl.startsWith(`${prefix}/`))) {
+    return next();
+  }
+
   if (!hasPermission(req.user, permission)) return forbidden(res);
   next();
 };

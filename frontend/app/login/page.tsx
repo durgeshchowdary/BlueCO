@@ -6,6 +6,14 @@ import axios from 'axios';
 import api, { API_BASE_URL } from '../../lib/api';
 import { roleHome, type Role } from '../../lib/auth';
 
+const seedLogins = [
+  { label: 'Super Admin', email: 'super@playgrid.ai', password: 'PlayGrid@123' },
+  { label: 'Academy Admin', email: 'admin@vijayawadablues.in', password: 'PlayGrid@123' },
+  { label: 'Coach', email: 'coach@vijayawadablues.in', password: 'PlayGrid@123' },
+  { label: 'Accountant', email: 'accountant@vijayawadablues.in', password: 'PlayGrid@123' },
+  { label: 'User', email: 'user@playgrid.ai', password: 'PlayGrid@123' },
+];
+
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -131,10 +139,22 @@ export default function LoginPage() {
 
         <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4 text-xs text-slate-300">
           <p className="font-bold text-white">Seed logins</p>
-          <p className="mt-2">super@playgrid.ai / PlayGrid@123</p>
-          <p>admin@vijayawadablues.in / PlayGrid@123</p>
-          <p>coach@vijayawadablues.in / PlayGrid@123</p>
-          <p>accountant@vijayawadablues.in / PlayGrid@123</p>
+          <div className="mt-3 space-y-2">
+            {seedLogins.map((login) => (
+              <button
+                key={login.email}
+                type="button"
+                onClick={() => {
+                  setEmail(login.email);
+                  setPassword(login.password);
+                }}
+                className="flex w-full items-center justify-between gap-3 rounded-xl border border-white/10 bg-slate-900/70 px-3 py-2 text-left transition hover:border-cyan-300/50 hover:bg-slate-900"
+              >
+                <span className="font-bold text-white">{login.label}</span>
+                <span className="truncate text-slate-300">{login.email} / {login.password}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         <p className="mt-6 text-center text-sm text-slate-400">

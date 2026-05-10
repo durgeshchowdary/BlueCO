@@ -67,6 +67,15 @@ const navByRole: Record<Role, NavItem[]> = {
     { href: '/employee/profile', label: 'Profile', icon: UserCog, permission: permissions.profileRead },
     { href: '/employee/schedule', label: 'Schedule', icon: Calendar, permission: permissions.scheduleRead },
   ],
+  student: [
+    { href: '/dashboard', label: 'PlayGrid Dashboard', icon: LayoutDashboard },
+    { href: '/students', label: 'Students', icon: Users },
+    { href: '/attendance', label: 'Attendance', icon: ClipboardCheck },
+    { href: '/payments', label: 'Payments', icon: Wallet },
+    { href: '/events', label: 'Events', icon: Calendar },
+    { href: '/announcements', label: 'Announcements', icon: Megaphone },
+    { href: '/tickets', label: 'Support', icon: Ticket },
+  ],
 };
 
 export default function RoleShell({

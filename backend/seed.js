@@ -229,6 +229,13 @@ const seed = async () => {
         employeeType: 'support_staff',
         permissions: [],
       },
+      {
+        name: 'Demo Student User',
+        email: 'user@playgrid.ai',
+        passwordHash: hashPassword('PlayGrid@123'),
+        role: ROLES.STUDENT,
+        permissions: [],
+      },
     ]);
 
     console.log('Data seeded successfully');

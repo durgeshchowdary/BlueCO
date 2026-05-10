@@ -19,6 +19,7 @@ import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import PaginationControls from '../../components/PaginationControls';
 import api from '../../lib/api';
+import { isAuthenticated } from '../../lib/auth';
 import { csvValue, missingFields, parseCSVFile } from '../../lib/csv';
 import { downloadCSV } from '../../lib/utils';
 
@@ -111,9 +112,7 @@ function StudentsContent() {
   }, [pagination.limit]);
 
   useEffect(() => {
-    const isAuth = localStorage.getItem('isAuthenticated');
-
-    if (!isAuth) {
+    if (!isAuthenticated()) {
       router.push('/login');
       return;
     }

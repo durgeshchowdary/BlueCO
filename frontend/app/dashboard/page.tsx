@@ -20,6 +20,7 @@ import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import Loading from '../../components/Loading';
 import api from '../../lib/api';
+import { isAuthenticated } from '../../lib/auth';
 
 const RevenueBarChart = dynamic(
   () => import('../../components/RevenueBarChart'),
@@ -57,9 +58,7 @@ export default function DashboardPage() {
   const [academyName, setAcademyName] = useState('Vijayawada Blues');
 
   useEffect(() => {
-    const isAuth = localStorage.getItem('isAuthenticated');
-
-    if (!isAuth) {
+    if (!isAuthenticated()) {
       window.location.href = '/login';
       return;
     }

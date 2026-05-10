@@ -18,6 +18,7 @@ import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import PaginationControls from '../../components/PaginationControls';
 import api from '../../lib/api';
+import { isAuthenticated } from '../../lib/auth';
 
 type TicketStatus = 'Open' | 'In Progress' | 'Resolved';
 type TicketPriority = 'low' | 'medium' | 'high' | 'urgent';
@@ -79,7 +80,7 @@ export default function TicketsPage() {
   }, [pagination.limit]);
 
   useEffect(() => {
-    if (!localStorage.getItem('isAuthenticated')) {
+    if (!isAuthenticated()) {
       router.push('/login');
       return;
     }

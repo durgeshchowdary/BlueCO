@@ -10,6 +10,7 @@ import Toast from '@/components/Toast';
 import ToastContainer from '@/components/ToastContainer';
 import Modal from '@/components/Modal';
 import api from '@/lib/api';
+import { isAuthenticated } from '@/lib/auth';
 
 interface AttendanceRecord {
   _id: string;
@@ -53,8 +54,7 @@ export default function AttendancePage() {
   }, []);
 
   useEffect(() => {
-    const isAuth = localStorage.getItem('isAuthenticated');
-    if (!isAuth) {
+    if (!isAuthenticated()) {
       window.location.href = '/login';
       return;
     }

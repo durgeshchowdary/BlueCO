@@ -20,6 +20,7 @@ import Sidebar from '../../components/Sidebar';
 import Topbar from '../../components/Topbar';
 import PaginationControls from '../../components/PaginationControls';
 import api from '../../lib/api';
+import { isAuthenticated } from '../../lib/auth';
 
 type Priority = 'Normal' | 'High' | 'Urgent';
 
@@ -95,7 +96,7 @@ export default function AnnouncementsPage() {
   }, [pagination.limit]);
 
   useEffect(() => {
-    if (!localStorage.getItem('isAuthenticated')) {
+    if (!isAuthenticated()) {
       window.location.href = '/login';
       return;
     }

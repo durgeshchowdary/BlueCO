@@ -24,6 +24,7 @@ import Topbar from '../../components/Topbar';
 import Loading from '../../components/Loading';
 import Toast from '../../components/Toast';
 import ToastContainer from '../../components/ToastContainer';
+import { isAuthenticated } from '../../lib/auth';
 
 type SettingsForm = {
   academyName: string;
@@ -100,8 +101,7 @@ export default function SettingsPage() {
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   useEffect(() => {
-    const isAuth = localStorage.getItem('isAuthenticated');
-    if (!isAuth) {
+    if (!isAuthenticated()) {
       window.location.href = '/login';
       return;
     }

@@ -41,7 +41,14 @@ export default function Topbar({
   }, [darkMode]);
 
   const logout = useCallback(() => {
+    localStorage.removeItem('playgrid_token');
+    localStorage.removeItem('playgrid_user');
+    localStorage.removeItem('playgrid_role');
+    localStorage.removeItem('playgrid_permissions');
     localStorage.removeItem('isAuthenticated');
+    document.cookie = 'pg_role=; Max-Age=0; path=/';
+    document.cookie = 'pg_token=; Max-Age=0; path=/';
+    document.cookie = 'pg_permissions=; Max-Age=0; path=/';
     router.push('/');
   }, [router]);
 
@@ -52,8 +59,9 @@ export default function Topbar({
       </h2>
 
       <div className="flex items-center gap-2 text-slate-600 md:gap-4">
-        <Link
-          href="/announcements"
+        <button
+          type="button"
+          onClick={() => router.push('/announcements')}
           title="Notifications"
           aria-label="Open notifications"
           className="relative rounded-xl p-2 transition hover:bg-slate-100 hover:text-blue-600"
@@ -62,16 +70,17 @@ export default function Topbar({
           <span className="absolute right-0 top-0 rounded-full bg-red-500 px-1.5 text-[10px] font-bold leading-4 text-white">
             6
           </span>
-        </Link>
+        </button>
 
-        <Link
-          href="/chat"
+        <button
+          type="button"
+          onClick={() => router.push('/chat')}
           title="Chat"
           aria-label="Open chat"
           className="rounded-xl p-2 transition hover:bg-slate-100 hover:text-blue-600"
         >
           <MessageSquare size={20} />
-        </Link>
+        </button>
 
         <button
           type="button"

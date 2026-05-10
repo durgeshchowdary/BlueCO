@@ -1,10 +1,11 @@
-export type Role = 'super_admin' | 'academy_admin' | 'coach' | 'employee';
+export type Role = 'super_admin' | 'academy_admin' | 'coach' | 'employee' | 'student';
 
 export const roleHome: Record<Role, string> = {
   super_admin: '/super-admin/dashboard',
   academy_admin: '/academy/dashboard',
   coach: '/coach/dashboard',
   employee: '/employee/dashboard',
+  student: '/dashboard',
 };
 
 export const roleLabels: Record<Role, string> = {
@@ -12,6 +13,7 @@ export const roleLabels: Record<Role, string> = {
   academy_admin: 'Academy Admin',
   coach: 'Coach',
   employee: 'Employee',
+  student: 'Student',
 };
 
 export function getStoredUser() {
@@ -24,6 +26,18 @@ export function getStoredUser() {
     localStorage.removeItem('playgrid_user');
     return null;
   }
+}
+
+export function isAuthenticated() {
+  if (typeof window === 'undefined') return false;
+  const legacyAuth = localStorage.getItem('isAuthenticated');
+  const token = localStorage.getItem('playgrid_token');
+
+  if (!legacyAuth && token) {
+    localStorage.setItem('isAuthenticated', 'true');
+  }
+
+  return legacyAuth === 'true' || Boolean(token);
 }
 
 export function logout() {

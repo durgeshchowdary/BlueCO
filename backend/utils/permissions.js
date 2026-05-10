@@ -21,6 +21,9 @@ const getEffectivePermissions = (user = {}) => {
       ...(user.permissions || []),
     ]);
   }
+  if (user.role === ROLES.STUDENT) {
+    return unique(['profile:read', 'student:dashboard']);
+  }
   return unique(user.permissions || []);
 };
 

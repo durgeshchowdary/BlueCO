@@ -177,9 +177,12 @@ export default function HomePage() {
             </a>
           </nav>
 
-          <div className="hidden items-center gap-5 lg:flex">
-            <Link href="/login" className="text-slate-300">
-              Log in
+          <div className="hidden items-center gap-4 md:flex">
+            <Link
+              href="/login"
+              className="rounded-full border border-cyan-300/50 bg-white/10 px-7 py-3 font-semibold text-cyan-100 shadow-lg shadow-cyan-500/10 backdrop-blur transition hover:scale-105 hover:border-cyan-200 hover:bg-cyan-300/20 hover:text-white"
+            >
+              Login
             </Link>
 
             <a href="#contact" className="rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 px-7 py-3 font-semibold shadow-2xl transition hover:scale-105">
@@ -188,12 +191,54 @@ export default function HomePage() {
           </div>
 
           <button
-            className="lg:hidden"
+            className="md:hidden"
             onClick={() => setMobileMenu(!mobileMenu)}
           >
             {mobileMenu ? <X /> : <Menu />}
           </button>
         </div>
+
+        {mobileMenu ? (
+          <div className="mx-auto max-w-7xl px-6 pb-5 lg:hidden">
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-3 backdrop-blur-xl">
+              <div className="grid gap-2">
+                {[
+                  ['#features', 'Features'],
+                  ['#reviews', 'Reviews'],
+                  ['#pricing', 'Pricing'],
+                  ['#contact', 'Contact'],
+                ].map(([href, label]) => (
+                  <a
+                    key={href}
+                    href={href}
+                    onClick={() => setMobileMenu(false)}
+                    className="rounded-2xl px-4 py-3 font-semibold text-slate-200 transition hover:bg-white/10 hover:text-cyan-200"
+                  >
+                    {label}
+                  </a>
+                ))}
+              </div>
+
+              <div className="mt-3 grid gap-3 border-t border-white/10 pt-3 sm:grid-cols-2">
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenu(false)}
+                  className="rounded-full border border-cyan-300/40 bg-cyan-300/10 px-5 py-3 text-center font-semibold text-cyan-100 transition hover:border-cyan-300 hover:bg-cyan-300/20"
+                >
+                  Login
+                </Link>
+
+                <a
+                  href="#contact"
+                  onClick={() => setMobileMenu(false)}
+                  className="rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 px-5 py-3 text-center font-semibold text-white shadow-xl shadow-cyan-500/10"
+                >
+                  Start Free Trial
+                </a>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </header>
 
       {/* HERO */}
@@ -227,14 +272,21 @@ export default function HomePage() {
           </p>
 
           <div className="mt-12 flex flex-col items-center justify-center gap-5 sm:flex-row">
-            <a href="#contact" className="flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 px-10 py-5 text-lg font-bold text-white transition hover:scale-105">
-              Start Free Trial <ArrowRight />
-            </a>
+  <Link
+    href="/login"
+    className="rounded-full border border-cyan-300/50 bg-white/10 px-10 py-5 text-lg font-bold text-cyan-100 backdrop-blur transition hover:scale-105 hover:bg-cyan-300/20"
+  >
+    Login
+  </Link>
 
-            <a href="#features" className="rounded-full border border-white/20 bg-white/5 px-10 py-5 text-lg font-semibold backdrop-blur hover:bg-white/10">
-              View Features
-            </a>
-          </div>
+  <a href="#contact" className="flex items-center gap-2 rounded-full bg-gradient-to-r from-cyan-400 to-blue-600 px-10 py-5 text-lg font-bold text-white transition hover:scale-105">
+    Start Free Trial <ArrowRight />
+  </a>
+
+  <a href="#features" className="rounded-full border border-white/20 bg-white/5 px-10 py-5 text-lg font-semibold backdrop-blur hover:bg-white/10">
+    View Features
+  </a>
+</div>
 
           <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-slate-300">
             <div className="flex items-center gap-2">

@@ -29,6 +29,7 @@ import PaginationControls from '../../components/PaginationControls';
 import { downloadCSV } from '../../lib/utils';
 import { csvValue, missingFields, parseCSVFile } from '../../lib/csv';
 import api from '../../lib/api';
+import { isAuthenticated } from '../../lib/auth';
 
 const FinanceAreaChart = dynamic(
   () => import('../../components/FinanceAreaChart'),
@@ -96,8 +97,7 @@ export default function PaymentsPage() {
   }, [pagination.limit]);
 
   useEffect(() => {
-    const isAuth = localStorage.getItem('isAuthenticated');
-    if (!isAuth) {
+    if (!isAuthenticated()) {
       window.location.href = '/login';
       return;
     }
