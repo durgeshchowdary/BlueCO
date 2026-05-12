@@ -3,8 +3,18 @@
 import Link from 'next/link';
 import { FormEvent, useState } from 'react';
 import axios from 'axios';
+import { ArrowRight, Building2, KeyRound, Mail, UserRound } from 'lucide-react';
 import api from '../../lib/api';
-import { roleHome, type Role } from '../../lib/auth';
+import { roleHome, setAuthSession, type Role } from '../../lib/auth';
+import {
+  AuthCard,
+  AuthFooterNote,
+  AuthHeader,
+  AuthInput,
+  AuthShell,
+  PrimaryAuthButton,
+  TrustStrip,
+} from '@/components/auth/AuthShell';
 
 export default function SignupPage() {
   const [name, setName] = useState('');
@@ -37,15 +47,16 @@ export default function SignupPage() {
         effectivePermissions: permissions,
       };
 
-      localStorage.setItem('playgrid_token', token);
-      localStorage.setItem('playgrid_user', JSON.stringify(normalizedUser));
-      localStorage.setItem('playgrid_role', role);
-      localStorage.setItem('playgrid_permissions', JSON.stringify(permissions));
-      localStorage.setItem('isAuthenticated', 'true');
+      setAuthSession({
+        token,
+        user: normalizedUser,
+        role: role as Role,
+        permissions,
+      });
       localStorage.setItem(
         'academySettings',
         JSON.stringify({
-          academyName: academy || 'PlayGrid Sports Academy',
+          academyName: academy || 'OUT-PLAY Sports Academy',
           ownerName: name || 'Normal User',
           phone: '',
           email,
@@ -53,9 +64,6 @@ export default function SignupPage() {
           logoUrl: '',
         }),
       );
-      document.cookie = `pg_role=${role}; path=/; max-age=36000; samesite=lax`;
-      document.cookie = `pg_token=${token}; path=/; max-age=36000; samesite=lax`;
-      document.cookie = `pg_permissions=${encodeURIComponent(permissions.join(','))}; path=/; max-age=36000; samesite=lax`;
       window.location.href = redirectTo;
     } catch (err) {
       const status = axios.isAxiosError(err) ? err.response?.status : undefined;
@@ -66,85 +74,86 @@ export default function SignupPage() {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-slate-950 px-4 text-white">
-      <div className="w-full max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur">
-        <p className="text-center text-sm font-semibold uppercase tracking-[0.3em] text-cyan-300">
-          Start free
-        </p>
-
-        <h1 className="mt-4 text-center text-3xl font-bold">
-          Create PlayGrid Account
-        </h1>
+    <AuthShell
+      eyebrow="Start with clarity"
+      title="Create your OUT-PLAY workspace"
+      subtitle="Launch a polished academy operating system for students, coaches, billing and performance."
+    >
+      <AuthCard>
+        <AuthHeader
+          eyebrow="Start free"
+          title="Create OUT-PLAY Account"
+          subtitle="Set up your academy profile and enter the dashboard"
+        />
 
         <form onSubmit={handleSignup} className="mt-8 space-y-5">
-          <div>
-            <label className="text-sm text-slate-300">Owner Name</label>
-            <input
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 outline-none focus:border-cyan-300"
-              placeholder="Durgesh Chowdary"
-            />
-          </div>
+          <AuthInput
+            id="owner-name"
+            required
+            label="Owner Name"
+            icon={UserRound}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Durgesh Chowdary"
+            autoComplete="name"
+          />
 
-          <div>
-            <label className="text-sm text-slate-300">Academy Name</label>
-            <input
-              required
-              value={academy}
-              onChange={(e) => setAcademy(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 outline-none focus:border-cyan-300"
-              placeholder="Vijayawada Blues Cricket Academy"
-            />
-          </div>
+          <AuthInput
+            id="academy-name"
+            required
+            label="Academy Name"
+            icon={Building2}
+            value={academy}
+            onChange={(e) => setAcademy(e.target.value)}
+            placeholder="Vijayawada Blues Cricket Academy"
+            autoComplete="organization"
+          />
 
-          <div>
-            <label className="text-sm text-slate-300">Email</label>
-            <input
-              required
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 outline-none focus:border-cyan-300"
-              placeholder="admin@vijayawadablues.in"
-            />
-          </div>
+          <AuthInput
+            id="signup-email"
+            required
+            type="email"
+            label="Email"
+            icon={Mail}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="admin@vijayawadablues.in"
+            autoComplete="email"
+          />
 
-          <div>
-            <label className="text-sm text-slate-300">Password</label>
-            <input
-              required
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 outline-none focus:border-cyan-300"
-              placeholder="Create password"
-            />
-          </div>
+          <AuthInput
+            id="signup-password"
+            required
+            type="password"
+            label="Password"
+            icon={KeyRound}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Create password"
+            autoComplete="new-password"
+          />
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-full bg-cyan-300 px-6 py-3 font-bold text-slate-950 transition hover:bg-cyan-200"
-          >
-            {loading ? 'Creating...' : 'Create Account'}
-          </button>
+          <PrimaryAuthButton loading={loading}>
+            {loading ? 'Creating account...' : 'Create Account'}
+            {!loading ? <ArrowRight size={18} /> : null}
+          </PrimaryAuthButton>
         </form>
 
         {error ? (
-          <p className="mt-4 rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-200">
+          <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
             {error}
           </p>
         ) : null}
 
-        <p className="mt-6 text-center text-sm text-slate-400">
+        <TrustStrip />
+
+        <AuthFooterNote>
           Already have an account?{' '}
-          <Link href="/login" className="text-cyan-300 hover:underline">
+          <Link href="/login" className="font-black text-emerald-700 hover:text-emerald-800">
             Login
           </Link>
-        </p>
-      </div>
-    </main>
+        </AuthFooterNote>
+      </AuthCard>
+    </AuthShell>
   );
 }

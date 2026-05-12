@@ -227,7 +227,7 @@ export default function CoachesPage() {
     const a = document.createElement('a');
 
     a.href = url;
-    a.download = 'playgrid-hrms-employees.csv';
+    a.download = 'out-play-hrms-employees.csv';
     a.click();
 
     window.URL.revokeObjectURL(url);

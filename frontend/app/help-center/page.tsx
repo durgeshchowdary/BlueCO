@@ -35,7 +35,7 @@ const faqs: FAQ[] = [
     category: 'Getting Started',
     question: 'How do I access the mobile app?',
     answer:
-      'You can access PlayGrid AI from any browser. A mobile app can be added later as a PWA or native app.',
+      'You can access OUT-PLAY from any browser. A mobile app can be added later as a PWA or native app.',
   },
   {
     id: '2',
@@ -189,7 +189,7 @@ export default function HelpCenterPage() {
             </div>
 
             <p className="mt-1 text-lg text-slate-500">
-              Find answers to common questions about PlayGrid AI
+              Find answers to common questions about OUT-PLAY
             </p>
           </div>
 

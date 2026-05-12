@@ -32,8 +32,8 @@ export default function Navbar() {
     <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${isLanding ? 'border-b border-white/5 bg-slate-950/80 backdrop-blur-xl' : 'border-b border-slate-100 bg-white/95 backdrop-blur-md'}`}>
       <div className="container flex items-center justify-between py-4">
         <Link href="/" className="flex items-center gap-3">
-          <span className={`flex h-10 w-10 items-center justify-center rounded-xl font-black ${isLanding ? 'bg-white text-slate-950' : 'bg-accent text-slate-950'}`}>PG</span>
-          <span className={`text-xl font-black tracking-tight ${isLanding ? 'text-white' : 'text-slate-900'}`}>PlayGrid AI</span>
+          <span className={`flex h-10 w-10 items-center justify-center rounded-xl font-black ${isLanding ? 'bg-white text-slate-950' : 'bg-accent text-slate-950'}`}>OP</span>
+          <span className={`text-xl font-black tracking-tight ${isLanding ? 'text-white' : 'text-slate-900'}`}>OUT-PLAY</span>
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">

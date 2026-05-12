@@ -285,7 +285,7 @@ function StudentsContent() {
     const a = document.createElement('a');
 
     a.href = url;
-    a.download = 'playgrid-students.csv';
+    a.download = 'out-play-students.csv';
     a.click();
 
     window.URL.revokeObjectURL(url);

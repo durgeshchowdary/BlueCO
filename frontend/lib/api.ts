@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { clearAuthSession, getAuthToken } from './auth';
+import { captureFrontendException, createClientRequestId } from './observability';
 
 export const API_BASE_URL = (
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api'
@@ -7,7 +9,7 @@ export const API_BASE_URL = (
 if (process.env.NODE_ENV === 'development') {
   // Temporary login diagnostics: confirms the browser bundle is not using stale 5000 or /api/api.
   // eslint-disable-next-line no-console
-  console.log('[PlayGrid API] baseURL:', API_BASE_URL);
+  console.log('[OUT-PLAY API] baseURL:', API_BASE_URL);
 }
 
 const api = axios.create({
@@ -21,8 +23,9 @@ const api = axios.create({
 
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('playgrid_token');
+    const token = getAuthToken();
     if (token) config.headers.Authorization = `Bearer ${token}`;
+    config.headers['x-request-id'] = createClientRequestId();
   }
   return config;
 });
@@ -47,15 +50,16 @@ api.interceptors.response.use(
       (prefix) => requestUrl === prefix || requestUrl.startsWith(`${prefix}/`),
     );
 
-    if (typeof window !== 'undefined' && !isLoginRequest && !isLegacyModuleRequest && [401, 403].includes(error.response?.status)) {
-      localStorage.removeItem('playgrid_token');
-      localStorage.removeItem('playgrid_user');
-      localStorage.removeItem('playgrid_role');
-      localStorage.removeItem('playgrid_permissions');
-      localStorage.removeItem('isAuthenticated');
-      document.cookie = 'pg_role=; Max-Age=0; path=/';
-      document.cookie = 'pg_token=; Max-Age=0; path=/';
-      document.cookie = 'pg_permissions=; Max-Age=0; path=/';
+    captureFrontendException(error, {
+      category: 'api_failure',
+      url: requestUrl,
+      method: error.config?.method,
+      status: error.response?.status,
+      requestId: error.response?.headers?.['x-request-id'],
+    });
+
+    if (typeof window !== 'undefined' && !isLoginRequest && !isLegacyModuleRequest && error.response?.status === 401) {
+      clearAuthSession();
       window.location.href = '/login';
     }
     return Promise.reject(error);

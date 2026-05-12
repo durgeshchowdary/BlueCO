@@ -180,7 +180,7 @@ export default function DashboardPage() {
 
             <StatCard
               title="Monthly Revenue"
-              value={`₹${(stats.monthlyRevenue / 1000).toFixed(1)}K`}
+              value={`Rs ${(stats.monthlyRevenue / 1000).toFixed(1)}K`}
               subtitle="Collected"
               icon={TrendingUp}
               color="violet"
@@ -248,7 +248,7 @@ export default function DashboardPage() {
                         {payment.studentName}
                       </p>
                       <p className="text-sm text-slate-500">
-                        ₹{payment.amount} • {payment.month} • {payment.status}
+                        Rs {payment.amount} / {payment.month} / {payment.status}
                       </p>
                     </div>
                   ))}
@@ -275,7 +275,7 @@ export default function DashboardPage() {
                   >
                     <p className="font-black text-slate-900">{event.title}</p>
                     <p className="mt-2 text-sm text-slate-500">
-                      {event.sport} • {event.location}
+                      {event.sport} / {event.location}
                     </p>
                     <p className="mt-1 text-sm text-slate-500">
                       {new Date(event.date).toLocaleDateString()}

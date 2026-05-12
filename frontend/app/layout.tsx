@@ -1,12 +1,14 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import ObservabilityClient from '../components/ObservabilityClient';
+import { DemoModeProvider } from '../providers/DemoModeProvider';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://playgrid.ai'),
-  applicationName: 'PlayGrid AI',
+  metadataBase: new URL('https://out-play.in'),
+  applicationName: 'OUT-PLAY',
   title: {
-    default: 'PlayGrid AI | Sports Academy Management',
-    template: '%s | PlayGrid AI',
+    default: 'OUT-PLAY | Sports Academy Management',
+    template: '%s | OUT-PLAY',
   },
   description:
     'Premium sports academy management software for student CRM, attendance, payments, events, HRMS, and academy performance dashboards.',
@@ -16,11 +18,11 @@ export const metadata: Metadata = {
     'student CRM',
     'sports attendance',
     'sports payments',
-    'PlayGrid AI',
+    'OUT-PLAY',
   ],
-  authors: [{ name: 'PlayGrid AI' }],
-  creator: 'PlayGrid AI',
-  publisher: 'PlayGrid AI',
+  authors: [{ name: 'OUT-PLAY' }],
+  creator: 'OUT-PLAY',
+  publisher: 'OUT-PLAY',
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
@@ -33,8 +35,8 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     url: '/',
-    siteName: 'PlayGrid AI',
-    title: 'PlayGrid AI | Sports Academy Management',
+    siteName: 'OUT-PLAY',
+    title: 'OUT-PLAY | Sports Academy Management',
     description:
       'Run admissions, batches, attendance, payments, events, HRMS, and academy KPIs from one polished sports operations platform.',
     images: [
@@ -42,13 +44,13 @@ export const metadata: Metadata = {
         url: '/images/hero-sports.webp',
         width: 1200,
         height: 630,
-        alt: 'PlayGrid AI sports academy management dashboard',
+        alt: 'OUT-PLAY sports academy management dashboard',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'PlayGrid AI | Sports Academy Management',
+    title: 'OUT-PLAY | Sports Academy Management',
     description:
       'Premium sports academy management for CRM, attendance, payments, events, HRMS, and performance dashboards.',
     images: ['/images/hero-sports.webp'],
@@ -62,7 +64,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <DemoModeProvider>
+          <ObservabilityClient />
+          {children}
+        </DemoModeProvider>
+      </body>
     </html>
   );
 }

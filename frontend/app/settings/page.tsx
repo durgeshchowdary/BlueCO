@@ -1,6 +1,6 @@
 'use client';
 
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
+import React, { ChangeEvent, FormEvent, useEffect, useMemo, useState } from 'react';
 import {
   Bell,
   Building2,
@@ -24,6 +24,7 @@ import Topbar from '../../components/Topbar';
 import Loading from '../../components/Loading';
 import Toast from '../../components/Toast';
 import ToastContainer from '../../components/ToastContainer';
+import DLTUploadBlock from '../../components/DLTUploadBlock';
 import { isAuthenticated } from '../../lib/auth';
 
 type SettingsForm = {
@@ -48,7 +49,7 @@ type SettingsForm = {
 const defaultSettings: SettingsForm = {
   academyName: 'Vijayawada Blues',
   ownerName: 'Durgesh Chowdary',
-  email: 'admin@playgrid.ai',
+  email: 'admin@outplay.in',
   phone: '+91 98765 43210',
   city: 'Vijayawada',
   timezone: 'Asia/Kolkata',
@@ -148,7 +149,7 @@ export default function SettingsPage() {
     event.preventDefault();
 
     localStorage.setItem('academySettings', JSON.stringify(settings));
-    localStorage.setItem('playgrid-theme', settings.theme);
+    localStorage.setItem('outplay-theme', settings.theme);
     document.documentElement.classList.toggle('app-dark', settings.theme === 'dark');
     setToast({ message: 'Settings saved successfully.', type: 'success' });
   };
@@ -275,6 +276,10 @@ export default function SettingsPage() {
                 </div>
               </SettingsPanel>
 
+              <ComplianceBoundary onError={() => setToast({ message: 'DLT compliance panel failed to render safely.', type: 'error' })}>
+                <DLTUploadBlock onToast={setToast} />
+              </ComplianceBoundary>
+
               <SettingsPanel icon={KeyRound} title="Security">
                 <div className="space-y-4">
                   <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
@@ -303,6 +308,36 @@ export default function SettingsPage() {
       </section>
     </main>
   );
+}
+
+class ComplianceBoundary extends React.Component<
+  { children: React.ReactNode; onError: () => void },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode; onError: () => void }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch() {
+    this.props.onError();
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <section className="rounded-3xl border border-red-100 bg-white p-5 text-sm font-bold text-red-700 shadow-sm">
+          DLT compliance uploads are temporarily unavailable.
+        </section>
+      );
+    }
+
+    return this.props.children;
+  }
 }
 
 function SettingsPanel({

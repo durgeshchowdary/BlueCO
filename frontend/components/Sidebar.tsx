@@ -59,10 +59,10 @@ export default function Sidebar() {
       {/* Logo Section */}
       <div className="flex items-center gap-3 px-8 py-8">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white font-black shadow-lg shadow-blue-200">
-          PG
+          OP
         </div>
         <div className="flex flex-col">
-          <span className="text-xl font-black tracking-tight text-slate-900">PlayGrid AI</span>
+          <span className="text-xl font-black tracking-tight text-slate-900">OUT-PLAY</span>
           <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">Enterprise</span>
         </div>
       </div>

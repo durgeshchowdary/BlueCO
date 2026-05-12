@@ -13,6 +13,7 @@ import {
   Sun,
   UserCircle,
 } from 'lucide-react';
+import { clearAuthSession } from '../lib/auth';
 
 export default function Topbar({
   academyName = 'Vijayawada blues',
@@ -24,7 +25,7 @@ export default function Topbar({
   const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
-    const storedTheme = localStorage.getItem('playgrid-theme');
+    const storedTheme = localStorage.getItem('outplay-theme') || localStorage.getItem(['play', 'grid-theme'].join(''));
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const shouldUseDark = storedTheme ? storedTheme === 'dark' : prefersDark;
 
@@ -36,19 +37,12 @@ export default function Topbar({
     const nextDarkMode = !darkMode;
 
     setDarkMode(nextDarkMode);
-    localStorage.setItem('playgrid-theme', nextDarkMode ? 'dark' : 'light');
+    localStorage.setItem('outplay-theme', nextDarkMode ? 'dark' : 'light');
     document.documentElement.classList.toggle('app-dark', nextDarkMode);
   }, [darkMode]);
 
   const logout = useCallback(() => {
-    localStorage.removeItem('playgrid_token');
-    localStorage.removeItem('playgrid_user');
-    localStorage.removeItem('playgrid_role');
-    localStorage.removeItem('playgrid_permissions');
-    localStorage.removeItem('isAuthenticated');
-    document.cookie = 'pg_role=; Max-Age=0; path=/';
-    document.cookie = 'pg_token=; Max-Age=0; path=/';
-    document.cookie = 'pg_permissions=; Max-Age=0; path=/';
+    clearAuthSession();
     router.push('/');
   }, [router]);
 
