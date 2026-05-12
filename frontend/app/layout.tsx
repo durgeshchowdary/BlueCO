@@ -1,7 +1,8 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import ObservabilityClient from '../components/ObservabilityClient';
-import { DemoModeProvider } from '../providers/DemoModeProvider';
+import ObservabilityClient from '@/components/ObservabilityClient';
+import { DemoModeProvider } from '@/providers/DemoModeProvider';
+import AuthSessionWrapper from '@/components/auth/AuthSessionWrapper';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://out-play.in'),
@@ -66,8 +67,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <DemoModeProvider>
-          <ObservabilityClient />
-          {children}
+          <AuthSessionWrapper>
+            <ObservabilityClient />
+            {children}
+          </AuthSessionWrapper>
         </DemoModeProvider>
       </body>
     </html>

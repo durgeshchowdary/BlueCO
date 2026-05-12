@@ -9,12 +9,17 @@ import {
 } from 'lucide-react';
 import { useState, FormEvent, ChangeEvent } from 'react';
 import api from '@/lib/api';
+import DemoWalkthrough from '../components/demo/DemoWalkthrough';
+import DemoQuickActions from '../components/demo/DemoQuickActions';
+import DemoHighlightsPanel from '../components/demo/DemoHighlightsPanel';
 
-import HeroSection from '../components/landing/HeroSection';
-import AIOperationsShowcase from '../components/landing/AIOperationsShowcase';
-import OperationalDashboardPreview from '../components/landing/OperationalDashboardPreview';
-import AcademyGrowthSection from '../components/landing/AcademyGrowthSection';
-import FeatureHighlights from '../components/landing/FeatureHighlights';
+
+
+import HeroSection from '../components/landing/HeroSection'
+import AIOperationsShowcase from '../components/landing/AIOperationsShowcase'
+import OperationalDashboardPreview from '../components/landing/OperationalDashboardPreview'
+import AcademyGrowthSection from '../components/landing/AcademyGrowthSection'
+import FeatureHighlights from '../components/landing/FeatureHighlights'
 
 const pricingPlans = [
   { name: 'Starter', price: '₹0', desc: 'Perfect for trying out' },
@@ -191,6 +196,34 @@ export default function HomePage() {
       <OperationalDashboardPreview />
       <AcademyGrowthSection />
       <FeatureHighlights />
+
+      <section id="demo-experience" className="bg-[#060816] px-6 py-28 border-y border-white/10">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-20 text-center">
+            <div className="mx-auto w-fit rounded-full border border-cyan-500/30 px-5 py-2 text-cyan-400 text-sm font-bold tracking-widest uppercase">
+              Recruiter Experience
+            </div>
+            <h2 className="mt-6 text-5xl font-black md:text-6xl text-white">
+              Platform Performance Demo
+            </h2>
+          </div>
+
+          <div className="grid gap-12 lg:grid-cols-2">
+            <div className="space-y-12">
+              <div>
+                <h3 className="text-2xl font-bold mb-6 text-white">Quick Access Workflows</h3>
+                <DemoQuickActions />
+              </div>
+              <div className="p-8 rounded-3xl bg-gradient-to-br from-cyan-500/10 to-blue-600/10 border border-cyan-500/20">
+                <p className="text-slate-400 italic font-medium leading-relaxed">
+                  &quot;This demo environment allows recruiters to explore the actual operational flow of an academy managing 500+ students in real-time.&quot;
+                </p>
+              </div>
+            </div>
+            <DemoHighlightsPanel />
+          </div>
+        </div>
+      </section>
 
       <section id="reviews" className="bg-[#f4f1e6] px-6 py-28 text-black">
         <div className="mx-auto max-w-7xl">
@@ -465,6 +498,8 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      <DemoWalkthrough />
     </main>
   );
 }

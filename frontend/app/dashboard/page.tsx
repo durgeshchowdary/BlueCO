@@ -1,5 +1,9 @@
 'use client';
 
+import ProductionReadinessPanel from '@/components/readiness/ProductionReadinessPanel';
+import DeploymentStatusPanel from '@/components/deployment/DeploymentStatusPanel';
+import RealtimeOperationsPanel from '@/components/live/RealtimeOperationsPanel';
+
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
@@ -9,6 +13,7 @@ import {
   ClipboardCheck,
   IndianRupee,
   Plus,
+  BarChart3,
   TrendingUp,
   UserPlus,
   Users,
@@ -22,15 +27,12 @@ import Loading from '../../components/Loading';
 import api from '../../lib/api';
 import { isAuthenticated } from '../../lib/auth';
 
-const RevenueBarChart = dynamic(
-  () => import('../../components/RevenueBarChart'),
-  { ssr: false },
-);
+const RevenueBarChart = dynamic(() => import('../../components/RevenueBarChart'), {
+  ssr: false,
+});
 
 type SummaryData = {
   totalStudents?: number;
-  activeCoaches?: number;
-  totalBatches?: number;
   pendingFees?: number;
   monthlyRevenue?: number;
   todayAttendancePercentage?: number;
@@ -82,11 +84,9 @@ export default function DashboardPage() {
         });
         setSummary(response.data || {});
       } catch {
-        if (controller.signal.aborted) return;
-        setSummary({});
+        if (!controller.signal.aborted) setSummary({});
       } finally {
-        if (controller.signal.aborted) return;
-        setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     };
 
@@ -95,14 +95,15 @@ export default function DashboardPage() {
     return () => controller.abort();
   }, []);
 
-  const stats = useMemo(() => {
-    return {
+  const stats = useMemo(
+    () => ({
       totalStudents: Number(summary?.totalStudents || 0),
       pendingFees: Number(summary?.pendingFees || 0),
       monthlyRevenue: Number(summary?.monthlyRevenue || 0),
       attendance: Number(summary?.todayAttendancePercentage || 0),
-    };
-  }, [summary]);
+    }),
+    [summary],
+  );
 
   const revenueChart = summary?.revenueHistory?.length
     ? summary.revenueHistory
@@ -154,68 +155,46 @@ export default function DashboardPage() {
           </div>
 
           <div className="mb-6 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-            <StatCard
-              title="Total Students"
-              value={stats.totalStudents}
-              subtitle={`${stats.totalStudents} active`}
-              icon={Users}
-              color="blue"
-            />
+            <StatCard title="Total Students" value={stats.totalStudents} subtitle={`${stats.totalStudents} active`} icon={Users} color="blue" />
+            <StatCard title="Attendance Today" value={`${stats.attendance}%`} subtitle="Present rate" icon={CalendarDays} color="cyan" />
+            <StatCard title="Fees Pending" value={stats.pendingFees} subtitle="Students pending" icon={IndianRupee} color="amber" />
+            <StatCard title="Monthly Revenue" value={`Rs ${(stats.monthlyRevenue / 1000).toFixed(1)}K`} subtitle="Collected" icon={TrendingUp} color="violet" />
+          </div>
 
-            <StatCard
-              title="Attendance Today"
-              value={`${stats.attendance}%`}
-              subtitle="Present rate"
-              icon={CalendarDays}
-              color="cyan"
-            />
+          <div className="mb-8">
+            <RealtimeOperationsPanel />
+          </div>
 
-            <StatCard
-              title="Fees Pending"
-              value={stats.pendingFees}
-              subtitle="Students pending"
-              icon={IndianRupee}
-              color="amber"
-            />
+          <div className="mb-8">
+            <ProductionReadinessPanel />
+          </div>
 
-            <StatCard
-              title="Monthly Revenue"
-              value={`Rs ${(stats.monthlyRevenue / 1000).toFixed(1)}K`}
-              subtitle="Collected"
-              icon={TrendingUp}
-              color="violet"
-            />
+          <div className="mb-8">
+            <DeploymentStatusPanel />
           </div>
 
           <div className="mb-8 flex flex-wrap gap-3">
-            <Link
-              href="/students"
-              className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-blue-700"
-            >
+            <Link href="/students" className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-blue-700">
               <UserPlus size={18} />
               Add Student
             </Link>
 
-            <Link
-              href="/students?tab=attendance"
-              className="flex items-center gap-2 rounded-xl bg-cyan-600 px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-cyan-700"
-            >
+            <Link href="/reports" className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 shadow-sm hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+              <BarChart3 size={18} />
+              Executive Reports
+            </Link>
+
+            <Link href="/students?tab=attendance" className="flex items-center gap-2 rounded-xl bg-cyan-600 px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-cyan-700">
               <ClipboardCheck size={18} />
               Mark Attendance
             </Link>
 
-            <Link
-              href="/events?openModal=true"
-              className="flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-violet-700"
-            >
+            <Link href="/events?openModal=true" className="flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-violet-700">
               <Plus size={18} />
               Create Event
             </Link>
 
-            <Link
-              href="/payments"
-              className="flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-amber-700"
-            >
+            <Link href="/payments" className="flex items-center gap-2 rounded-xl bg-amber-600 px-5 py-3 text-sm font-bold text-white shadow-lg hover:bg-amber-700">
               <IndianRupee size={18} />
               Add Expense
             </Link>
@@ -223,30 +202,20 @@ export default function DashboardPage() {
 
           <div className="grid gap-6 xl:grid-cols-[1.6fr_1fr]">
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h3 className="mb-6 text-xl font-black text-slate-900">
-                Revenue Trend
-              </h3>
-
+              <h3 className="mb-6 text-xl font-black text-slate-900">Revenue Trend</h3>
               <div className="h-[340px]">
                 <RevenueBarChart data={revenueChart} />
               </div>
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h3 className="mb-6 text-xl font-black text-slate-900">
-                Recent Activity
-              </h3>
+              <h3 className="mb-6 text-xl font-black text-slate-900">Recent Activity</h3>
 
               {summary?.recentPayments?.length ? (
                 <div className="space-y-4">
                   {summary.recentPayments.slice(0, 5).map((payment) => (
-                    <div
-                      key={payment._id}
-                      className="rounded-2xl border border-slate-100 bg-slate-50 p-4"
-                    >
-                      <p className="font-bold text-slate-900">
-                        {payment.studentName}
-                      </p>
+                    <div key={payment._id} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
+                      <p className="font-bold text-slate-900">{payment.studentName}</p>
                       <p className="text-sm text-slate-500">
                         Rs {payment.amount} / {payment.month} / {payment.status}
                       </p>
@@ -262,17 +231,12 @@ export default function DashboardPage() {
           </div>
 
           <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h3 className="mb-6 text-xl font-black text-slate-900">
-              Upcoming Events
-            </h3>
+            <h3 className="mb-6 text-xl font-black text-slate-900">Upcoming Events</h3>
 
             {summary?.upcomingEventsList?.length ? (
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 {summary.upcomingEventsList.slice(0, 6).map((event) => (
-                  <div
-                    key={event._id}
-                    className="rounded-2xl border border-slate-100 bg-slate-50 p-5"
-                  >
+                  <div key={event._id} className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
                     <p className="font-black text-slate-900">{event.title}</p>
                     <p className="mt-2 text-sm text-slate-500">
                       {event.sport} / {event.location}

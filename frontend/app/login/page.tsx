@@ -5,6 +5,8 @@ import { FormEvent, useState } from 'react';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { ArrowRight, Building2, Crown, KeyRound, Mail, ShieldCheck, UserRound, Wallet } from 'lucide-react';
+import SecurityNotice from '@/components/auth/SecurityNotice';
+import { validatePassword } from '@/lib/passwordValidation';
 import api, { API_BASE_URL } from '../../lib/api';
 import { roleHome, setAuthSession, type Role } from '../../lib/auth';
 import {
@@ -149,6 +151,7 @@ export default function LoginPage() {
             {!loading ? <ArrowRight size={18} /> : null}
           </PrimaryAuthButton>
         </form>
+        <SecurityNotice />
 
         {error ? (
           <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">

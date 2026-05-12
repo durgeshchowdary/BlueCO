@@ -5,6 +5,9 @@ import { FormEvent, useState } from 'react';
 import axios from 'axios';
 import { ArrowRight, Building2, KeyRound, Mail, UserRound } from 'lucide-react';
 import api from '../../lib/api';
+import SecurityNotice from '@/components/auth/SecurityNotice';
+import PasswordStrengthMeter from '@/components/auth/PasswordStrengthMeter';
+import { validatePassword } from '@/lib/passwordValidation';
 import { roleHome, setAuthSession, type Role } from '../../lib/auth';
 import {
   AuthCard,
@@ -23,11 +26,19 @@ export default function SignupPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [passwordValidationErrors, setPasswordValidationErrors] = useState<string[]>([]);
 
   const handleSignup = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+
+    const validationErrors = validatePassword(password);
+    if (validationErrors.length > 0) {
+      setError('Password does not meet security requirements.');
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await api.post('/auth/signup', { name, email, password });
@@ -71,6 +82,11 @@ export default function SignupPage() {
       setError(`Signup failed${status ? ` (${status})` : ''}: ${backendMessage || 'Unable to create account'}`);
       setLoading(false);
     }
+  };
+
+  const handlePasswordChange = (val: string) => {
+    setPassword(val);
+    setPasswordValidationErrors(validatePassword(val));
   };
 
   return (
@@ -128,16 +144,18 @@ export default function SignupPage() {
             label="Password"
             icon={KeyRound}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => handlePasswordChange(e.target.value)}
             placeholder="Create password"
             autoComplete="new-password"
           />
+          <PasswordStrengthMeter password={password} />
 
           <PrimaryAuthButton loading={loading}>
             {loading ? 'Creating account...' : 'Create Account'}
             {!loading ? <ArrowRight size={18} /> : null}
           </PrimaryAuthButton>
         </form>
+        <SecurityNotice />
 
         {error ? (
           <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
