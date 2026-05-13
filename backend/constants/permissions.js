@@ -141,7 +141,7 @@ const EMPLOYEE_TYPE_PERMISSIONS = Object.freeze({
   ],
 });
 
-module.exports = {
+export {
   PERMISSIONS,
   ACADEMY_ADMIN_PERMISSIONS,
   COACH_PERMISSIONS,

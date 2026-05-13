@@ -1,4 +1,4 @@
-const DemoRequest = require('../models/DemoRequest');
+import DemoRequest from '../models/DemoRequest.js';
 
 const createDemoRequest = async (req, res, next) => {
   try {
@@ -18,7 +18,7 @@ const getDemoRequests = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export {
   createDemoRequest,
   getDemoRequests
 };

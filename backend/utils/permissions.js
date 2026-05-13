@@ -1,9 +1,9 @@
-const { ROLES } = require('../constants/roles');
-const {
+import { ROLES } from '../constants/roles.js';
+import {
   ACADEMY_ADMIN_PERMISSIONS,
   COACH_PERMISSIONS,
   EMPLOYEE_TYPE_PERMISSIONS,
-} = require('../constants/permissions');
+} from '../constants/permissions.js';
 
 const unique = (items) => [...new Set((items || []).filter(Boolean))];
 
@@ -37,4 +37,4 @@ const hasAnyPermission = (user, permissions = []) => {
   return effective.includes('*') || permissions.some((permission) => effective.includes(permission));
 };
 
-module.exports = { getEffectivePermissions, hasPermission, hasAnyPermission };
+export { getEffectivePermissions, hasPermission, hasAnyPermission };

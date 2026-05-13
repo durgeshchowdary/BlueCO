@@ -1,14 +1,23 @@
-const express = require('express');
-const { authenticateUser, requireRole } = require('../middleware/authMiddleware');
-const { ROLES } = require('../constants/roles');
-const Attendance = require('../models/Attendance');
-const Payment = require('../models/Payment');
-const Event = require('../models/Event');
-const Announcement = require('../models/Announcement');
-const Ticket = require('../models/Ticket');
+import express from 'express';
+import { authenticateUser, requireRole } from '../middleware/authMiddleware.js';
+import { ROLES } from '../constants/roles.js';
+import Attendance from '../models/Attendance.js';
+import Payment from '../models/Payment.js';
+import Event from '../models/Event.js';
+import Announcement from '../models/Announcement.js';
+import Ticket from '../models/Ticket.js';
 
 const router = express.Router();
 router.use(authenticateUser, requireRole(ROLES.STUDENT));
+
+/**
+ * @typedef {object} CustomUser
+ * @property {string} _id
+ * @property {string} name
+ * @property {string} email
+ * @property {string} role
+ * @property {string[]} effectivePermissions
+ */
 
 const ownNameFilter = (req) => ({
   $or: [
@@ -22,11 +31,11 @@ router.get('/dashboard', (req, res) => {
   res.json({
     message: 'Student dashboard',
     user: {
-      id: req.user._id,
-      name: req.user.name,
-      email: req.user.email,
-      role: req.user.role,
-      permissions: req.user.effectivePermissions || [],
+      id: /** @type {CustomUser} */ (req.user)._id,
+      name: /** @type {CustomUser} */ (req.user).name,
+      email: /** @type {CustomUser} */ (req.user).email,
+      role: /** @type {CustomUser} */ (req.user).role,
+      permissions: /** @type {CustomUser} */ (req.user).effectivePermissions || [],
     },
     allowedActions: [
       'View own profile',
@@ -48,10 +57,10 @@ router.get('/dashboard', (req, res) => {
 
 router.get('/profile', (req, res) => {
   res.json({
-    id: req.user._id,
-    name: req.user.name,
-    email: req.user.email,
-    role: req.user.role,
+    id: /** @type {CustomUser} */ (req.user)._id,
+    name: /** @type {CustomUser} */ (req.user).name,
+    email: /** @type {CustomUser} */ (req.user).email,
+    role: /** @type {CustomUser} */ (req.user).role,
   });
 });
 
@@ -108,7 +117,7 @@ router.get('/announcements', async (req, res, next) => {
 router.route('/tickets')
   .get(async (req, res, next) => {
     try {
-      const tickets = await Ticket.find({ createdBy: req.user._id }).sort({ createdAt: -1 }).limit(100).lean();
+      const tickets = await Ticket.find({ createdBy: /** @type {CustomUser} */ (req.user)._id }).sort({ createdAt: -1 }).limit(100).lean();
       res.json({ tickets, scope: 'own_tickets_only' });
     } catch (error) {
       next(error);
@@ -121,10 +130,10 @@ router.route('/tickets')
       if (!subject || !message) return res.status(400).json({ message: 'Subject and message are required' });
 
       const ticket = await Ticket.create({
-        createdBy: req.user._id,
+        createdBy: /** @type {CustomUser} */ (req.user)._id,
         subject,
         message,
-        requester: req.user.name,
+        requester: /** @type {CustomUser} */ (req.user).name,
         category: req.body.category || 'student_support',
         priority: req.body.priority || 'medium',
       });
@@ -149,4 +158,4 @@ router.get('/features', (req, res) => {
   });
 });
 
-module.exports = router;
+export default router;

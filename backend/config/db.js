@@ -1,4 +1,5 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+import logger from '../services/logger.js';
 
 const connectDB = async () => {
   const mongoUri = process.env.MONGO_URI;
@@ -12,11 +13,11 @@ const connectDB = async () => {
       serverSelectionTimeoutMS: 10000,
     });
 
-    console.log(`MongoDB connected: ${conn.connection.host}`);
+    logger.info('database.connected', { category: 'database', host: conn.connection.host });
     return conn;
   } catch (error) {
     throw new Error(`MongoDB connection failed: ${error.message}`);
   }
 };
 
-module.exports = connectDB;
+export default connectDB;

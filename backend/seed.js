@@ -1,23 +1,24 @@
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const connectDB = require('./config/db');
-const Student = require('./models/Student');
-const Coach = require('./models/Coach');
-const Batch = require('./models/Batch');
-const Attendance = require('./models/Attendance');
-const Payment = require('./models/Payment');
-const Event = require('./models/Event');
-const User = require('./models/User');
-const Academy = require('./models/Academy');
-const Subscription = require('./models/Subscription');
-const AuditLog = require('./models/AuditLog');
-const FeaturePermission = require('./models/FeaturePermission');
-const Permission = require('./models/Permission');
-const Task = require('./models/Task');
-const { hashPassword } = require('./utils/auth');
-const { ROLES } = require('./constants/roles');
-const { PERMISSIONS, EMPLOYEE_TYPE_PERMISSIONS } = require('./constants/permissions');
-
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import connectDB from './config/db.js';
+import Student from './models/Student.js';
+import Coach from './models/Coach.js';
+import Batch from './models/Batch.js';
+import Attendance from './models/Attendance.js';
+import Payment from './models/Payment.js';
+import Event from './models/Event.js';
+import User from './models/User.js';
+import Academy from './models/Academy.js';
+import Subscription from './models/Subscription.js';
+import AuditLog from './models/AuditLog.js';
+import FeaturePermission from './models/FeaturePermission.js';
+import Permission from './models/Permission.js';
+import Task from './models/Task.js';
+import { hashPassword } from './utils/auth.js';
+import { ROLES } from './constants/roles.js';
+import { PERMISSIONS, EMPLOYEE_TYPE_PERMISSIONS } from './constants/permissions.js';
+import logger from './services/logger.js';
+import process from 'node:process';
 dotenv.config();
 
 const seed = async () => {
@@ -65,9 +66,9 @@ const seed = async () => {
 
     await Subscription.create({
       academyId: academy._id,
-      plan: 'enterprise',
+      plan: 'pro',
       status: 'active',
-      monthlyAmount: 49999,
+      monthlyAmount: 999,
       renewsAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });
 
@@ -186,62 +187,92 @@ const seed = async () => {
     await Event.insertMany(events);
 
     await User.insertMany([
-      {
-        name: 'Platform Owner',
-        email: 'super@playgrid.ai',
-        passwordHash: hashPassword('PlayGrid@123'),
-        role: ROLES.SUPER_ADMIN,
-        permissions: ['*'],
-      },
-      {
-        name: 'Academy Admin',
-        email: 'admin@vijayawadablues.in',
-        passwordHash: hashPassword('PlayGrid@123'),
-        role: ROLES.ACADEMY_ADMIN,
-        academyId: academy._id,
-        permissions: [],
-      },
-      {
-        name: 'Vikram Coach',
-        email: 'coach@vijayawadablues.in',
-        passwordHash: hashPassword('PlayGrid@123'),
-        role: ROLES.COACH,
-        academyId: academy._id,
-        assignedStudents: insertedStudents.slice(0, 8).map((student) => student._id),
-        assignedBatches: insertedBatches.slice(0, 2).map((batch) => batch._id),
-        permissions: [],
-      },
-      {
-        name: 'Accounts Employee',
-        email: 'accountant@vijayawadablues.in',
-        passwordHash: hashPassword('PlayGrid@123'),
-        role: ROLES.EMPLOYEE,
-        academyId: academy._id,
-        employeeType: 'accountant',
-        permissions: [],
-      },
-      {
-        name: 'Support Employee',
-        email: 'support@vijayawadablues.in',
-        passwordHash: hashPassword('PlayGrid@123'),
-        role: ROLES.EMPLOYEE,
-        academyId: academy._id,
-        employeeType: 'support_staff',
-        permissions: [],
-      },
-      {
-        name: 'Demo Student User',
-        email: 'user@playgrid.ai',
-        passwordHash: hashPassword('PlayGrid@123'),
-        role: ROLES.STUDENT,
-        permissions: [],
-      },
-    ]);
-
-    console.log('Data seeded successfully');
+  {
+    name: 'Platform Owner',
+    email: 'super@playgrid.ai',
+    passwordHash: hashPassword('PlayGrid@123'),
+    role: ROLES.SUPER_ADMIN,
+    permissions: ['*'],
+    isActive: true,
+  },
+  {
+    name: 'Platform Owner Alias',
+    email: 'superadmin@outplay.com',
+    passwordHash: hashPassword('admin123'),
+    role: ROLES.SUPER_ADMIN,
+    permissions: ['*'],
+    isActive: true,
+  },
+  {
+    name: 'Academy Admin',
+    email: 'admin@vijayawadablues.in',
+    passwordHash: hashPassword('PlayGrid@123'),
+    role: ROLES.ACADEMY_ADMIN,
+    academyId: academy._id,
+    permissions: [],
+    isActive: true,
+  },
+  {
+    name: 'Academy Admin Alias',
+    email: 'academy@outplay.com',
+    passwordHash: hashPassword('admin123'),
+    role: ROLES.ACADEMY_ADMIN,
+    academyId: academy._id,
+    permissions: [],
+    isActive: true,
+  },
+  {
+    name: 'Vikram Coach',
+    email: 'coach@vijayawadablues.in',
+    passwordHash: hashPassword('PlayGrid@123'),
+    role: ROLES.COACH,
+    academyId: academy._id,
+    assignedStudents: insertedStudents.slice(0, 8).map((student) => student._id),
+    assignedBatches: insertedBatches.slice(0, 2).map((batch) => batch._id),
+    permissions: [],
+    isActive: true,
+  },
+  {
+    name: 'Accounts Employee',
+    email: 'accountant@vijayawadablues.in',
+    passwordHash: hashPassword('PlayGrid@123'),
+    role: ROLES.EMPLOYEE,
+    academyId: academy._id,
+    employeeType: 'accountant',
+    permissions: [],
+    isActive: true,
+  },
+  {
+    name: 'Support Employee',
+    email: 'support@vijayawadablues.in',
+    passwordHash: hashPassword('PlayGrid@123'),
+    role: ROLES.EMPLOYEE,
+    academyId: academy._id,
+    employeeType: 'support_staff',
+    permissions: [],
+    isActive: true,
+  },
+  {
+    name: 'Demo Student User',
+    email: 'user@playgrid.ai',
+    passwordHash: hashPassword('PlayGrid@123'),
+    role: ROLES.STUDENT,
+    permissions: [],
+    isActive: true,
+  },
+  {
+    name: 'Demo Student Alias',
+    email: 'admin@outplay.com',
+    passwordHash: hashPassword('admin123'),
+    role: ROLES.STUDENT,
+    permissions: [],
+    isActive: true,
+  },
+]);
+    logger.info('seed.success', { category: 'database' });
     process.exit();
   } catch (error) {
-    console.error(error);
+    logger.error('seed.failure', { category: 'database', error });
     process.exit(1);
   }
 };

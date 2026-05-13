@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const ticketSchema = new mongoose.Schema(
   {
@@ -35,4 +35,4 @@ ticketSchema.index({ academyId: 1, createdAt: -1 });
 ticketSchema.index({ createdBy: 1, createdAt: -1 });
 ticketSchema.index({ status: 1, createdAt: -1 });
 
-module.exports = mongoose.model('Ticket', ticketSchema);
+export default mongoose.model('Ticket', ticketSchema);

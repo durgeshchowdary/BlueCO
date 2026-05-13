@@ -1,17 +1,17 @@
-const express = require('express');
-const {
+import express from 'express';
+import {
   getStudents,
   getStudentById,
   createStudent,
   importStudents,
   updateStudent,
   deleteStudent,
-} = require('../controllers/studentController');
-const { requirePermission } = require('../middleware/authMiddleware');
-const { PERMISSIONS } = require('../constants/permissions');
+} from '../controllers/studentController.js';
+import { requirePermission } from '../middleware/authMiddleware.js';
+import { PERMISSIONS } from '../constants/permissions.js';
 
 const router = express.Router();
-router.route('/')
+router.route('/') // Use .js extension for local imports
   .get(requirePermission(PERMISSIONS.STUDENTS_READ), getStudents)
   .post(requirePermission(PERMISSIONS.STUDENTS_WRITE), createStudent);
 router.post('/import', requirePermission(PERMISSIONS.STUDENTS_WRITE), importStudents);
@@ -20,4 +20,4 @@ router.route('/:id')
   .put(requirePermission(PERMISSIONS.STUDENTS_WRITE), updateStudent)
   .delete(requirePermission(PERMISSIONS.STUDENTS_DELETE), deleteStudent);
 
-module.exports = router;
+export default router;

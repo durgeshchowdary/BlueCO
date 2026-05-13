@@ -1,20 +1,20 @@
-const express = require('express');
-const {
+import express from 'express';
+import {
   getTickets,
   createTicket,
   updateTicket,
   deleteTicket,
-} = require('../controllers/ticketController');
-const { requirePermission } = require('../middleware/authMiddleware');
-const { PERMISSIONS } = require('../constants/permissions');
+} from '../controllers/ticketController.js';
+import { requirePermission } from '../middleware/authMiddleware.js';
+import { PERMISSIONS } from '../constants/permissions.js';
 
 const router = express.Router();
 
-router.route('/')
+router.route('/') // Use .js extension for local imports
   .get(requirePermission(PERMISSIONS.TICKETS_READ), getTickets)
   .post(requirePermission(PERMISSIONS.TICKETS_WRITE), createTicket);
 router.route('/:id')
   .put(requirePermission(PERMISSIONS.TICKETS_WRITE), updateTicket)
   .delete(requirePermission(PERMISSIONS.TICKETS_DELETE), deleteTicket);
 
-module.exports = router;
+export default router;

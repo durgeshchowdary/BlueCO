@@ -1,6 +1,6 @@
-const Event = require('../models/Event');
-const { getPagination, paginatedResponse } = require('../utils/pagination');
-const { scopedFilter, scopedPayload } = require('../utils/scope');
+import Event from '../models/Event.js';
+import { getPagination, paginatedResponse } from '../utils/pagination.js';
+import { scopedFilter, scopedPayload } from '../utils/scope.js';
 
 const normalizeEventPayload = (payload) => {
   const date = payload.date || payload.startDate;
@@ -78,7 +78,7 @@ const deleteEvent = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export {
   getEvents,
   getEventById,
   createEvent,

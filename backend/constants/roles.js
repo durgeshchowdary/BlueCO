@@ -23,4 +23,4 @@ const ROLE_HOME = Object.freeze({
   [ROLES.STUDENT]: '/dashboard',
 });
 
-module.exports = { ROLES, EMPLOYEE_TYPES, ROLE_HOME };
+export { ROLES, EMPLOYEE_TYPES, ROLE_HOME };

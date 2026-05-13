@@ -1,5 +1,5 @@
-const Attendance = require('../models/Attendance');
-const { scopedFilter, scopedPayload } = require('../utils/scope');
+import Attendance from '../models/Attendance.js';
+import { scopedFilter, scopedPayload } from '../utils/scope.js';
 
 const getAttendanceRecords = async (req, res, next) => {
   try {
@@ -53,7 +53,7 @@ const deleteAttendance = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export {
   getAttendanceRecords,
   getAttendanceById,
   createAttendance,

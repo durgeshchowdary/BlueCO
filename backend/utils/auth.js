@@ -1,4 +1,5 @@
-const crypto = require('crypto');
+import crypto from 'node:crypto';
+import process from 'node:process';
 
 const base64Url = (input) => Buffer.from(input).toString('base64url');
 
@@ -47,4 +48,4 @@ const verifyPassword = (password, passwordHash) => {
   return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(storedHash));
 };
 
-module.exports = { sign, verify, hashPassword, verifyPassword };
+export { sign, verify, hashPassword, verifyPassword };

@@ -1,12 +1,19 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const subscriptionSchema = new mongoose.Schema(
   {
     academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', required: true },
-    plan: { type: String, enum: ['trial', 'starter', 'pro', 'enterprise'], default: 'trial' },
-    status: { type: String, enum: ['active', 'past_due', 'cancelled', 'trial'], default: 'trial' },
+    plan: { type: String, enum: ['trial', 'pro', 'legend'], default: 'trial' },
+    status: { type: String, enum: ['trial', 'active', 'past_due', 'suspended', 'cancelled'], default: 'trial' },
     monthlyAmount: { type: Number, default: 0 },
     currency: { type: String, default: 'INR' },
+    trialStartedAt: { type: Date, default: Date.now },
+    trialEndsAt: { type: Date, default: null },
+    bufferUntil: { type: Date, default: null },
+    currentPeriodStart: { type: Date, default: null },
+    currentPeriodEnd: { type: Date, default: null },
+    lastPaymentId: { type: String, default: '' },
+    lastOrderId: { type: String, default: '' },
     renewsAt: { type: Date, default: null },
   },
   { timestamps: true },
@@ -14,4 +21,4 @@ const subscriptionSchema = new mongoose.Schema(
 
 subscriptionSchema.index({ academyId: 1, status: 1 });
 
-module.exports = mongoose.model('Subscription', subscriptionSchema);
+export default mongoose.model('Subscription', subscriptionSchema);

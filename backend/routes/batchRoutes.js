@@ -1,16 +1,18 @@
-const express = require('express');
-const {
+import express from 'express';
+import {
   getBatches,
   getBatchById,
   createBatch,
   updateBatch,
   deleteBatch,
-} = require('../controllers/batchController');
-const { requirePermission } = require('../middleware/authMiddleware');
-const { PERMISSIONS } = require('../constants/permissions');
+  validateBatchConflicts,
+} from '../controllers/batchController.js';
+import { requirePermission } from '../middleware/authMiddleware.js';
+import { PERMISSIONS } from '../constants/permissions.js';
 
 const router = express.Router();
-router.route('/')
+router.post('/conflicts/validate', requirePermission(PERMISSIONS.BATCHES_WRITE), validateBatchConflicts); // Use .js extension for local imports
+router.route('/') // Use .js extension for local imports
   .get(requirePermission(PERMISSIONS.BATCHES_READ), getBatches)
   .post(requirePermission(PERMISSIONS.BATCHES_WRITE), createBatch);
 router.route('/:id')
@@ -18,4 +20,4 @@ router.route('/:id')
   .put(requirePermission(PERMISSIONS.BATCHES_WRITE), updateBatch)
   .delete(requirePermission(PERMISSIONS.BATCHES_DELETE), deleteBatch);
 
-module.exports = router;
+export default router;

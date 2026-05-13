@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const coachSchema = new mongoose.Schema({
   academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', index: true },
@@ -13,4 +13,4 @@ coachSchema.index({ name: 1 });
 coachSchema.index({ academyId: 1, status: 1 });
 coachSchema.index({ status: 1 });
 
-module.exports = mongoose.model('Coach', coachSchema);
+export default mongoose.model('Coach', coachSchema);

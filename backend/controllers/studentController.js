@@ -1,6 +1,6 @@
-const Student = require('../models/Student');
-const { getPagination, paginatedResponse } = require('../utils/pagination');
-const { coachStudentFilter, scopedFilter, scopedPayload } = require('../utils/scope');
+import Student from '../models/Student.js';
+import { getPagination, paginatedResponse } from '../utils/pagination.js';
+import { coachStudentFilter, scopedFilter, scopedPayload } from '../utils/scope.js';
 
 const getStudents = async (req, res, next) => {
   try {
@@ -98,7 +98,7 @@ const deleteStudent = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export {
   getStudents,
   getStudentById,
   createStudent,

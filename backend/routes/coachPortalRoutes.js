@@ -1,11 +1,11 @@
-const express = require('express');
-const Student = require('../models/Student');
-const Batch = require('../models/Batch');
-const Attendance = require('../models/Attendance');
-const Event = require('../models/Event');
-const Announcement = require('../models/Announcement');
-const { authenticateUser, requireCoach, requireAcademyScope, requirePermission, audit } = require('../middleware/authMiddleware');
-const { PERMISSIONS } = require('../constants/permissions');
+import express from 'express';
+import Student from '../models/Student.js';
+import Batch from '../models/Batch.js';
+import Attendance from '../models/Attendance.js';
+import Event from '../models/Event.js';
+import Announcement from '../models/Announcement.js';
+import { authenticateUser, requireCoach, requireAcademyScope, requirePermission, audit } from '../middleware/authMiddleware.js';
+import { PERMISSIONS } from '../constants/permissions.js';
 
 const router = express.Router();
 router.use(authenticateUser, requireCoach(), requireAcademyScope);
@@ -102,4 +102,4 @@ router.get('/announcements', requirePermission(PERMISSIONS.ANNOUNCEMENTS_READ), 
   }
 });
 
-module.exports = router;
+export default router;

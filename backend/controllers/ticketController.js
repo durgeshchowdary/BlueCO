@@ -1,6 +1,6 @@
-const Ticket = require('../models/Ticket');
-const { getPagination, paginatedResponse } = require('../utils/pagination');
-const { scopedFilter, scopedPayload } = require('../utils/scope');
+import Ticket from '../models/Ticket.js';
+import { getPagination, paginatedResponse } from '../utils/pagination.js';
+import { scopedFilter, scopedPayload } from '../utils/scope.js';
 
 const getTickets = async (req, res, next) => {
   try {
@@ -50,7 +50,7 @@ const deleteTicket = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export {
   getTickets,
   createTicket,
   updateTicket,

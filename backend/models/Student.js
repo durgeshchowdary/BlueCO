@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const studentSchema = new mongoose.Schema({
   academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', index: true },
@@ -19,4 +19,4 @@ studentSchema.index({ feeStatus: 1, joinedAt: -1 });
 studentSchema.index({ sport: 1 });
 studentSchema.index({ batch: 1 });
 
-module.exports = mongoose.model('Student', studentSchema);
+export default mongoose.model('Student', studentSchema);

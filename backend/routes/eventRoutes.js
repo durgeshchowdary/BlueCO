@@ -1,16 +1,16 @@
-const express = require('express');
-const {
+import express from 'express';
+import {
   getEvents,
   getEventById,
   createEvent,
   updateEvent,
   deleteEvent,
-} = require('../controllers/eventController');
-const { requirePermission } = require('../middleware/authMiddleware');
-const { PERMISSIONS } = require('../constants/permissions');
+} from '../controllers/eventController.js';
+import { requirePermission } from '../middleware/authMiddleware.js';
+import { PERMISSIONS } from '../constants/permissions.js';
 
 const router = express.Router();
-router.route('/')
+router.route('/') // Use .js extension for local imports
   .get(requirePermission(PERMISSIONS.EVENTS_READ), getEvents)
   .post(requirePermission(PERMISSIONS.EVENTS_WRITE), createEvent);
 router.route('/:id')
@@ -18,4 +18,4 @@ router.route('/:id')
   .put(requirePermission(PERMISSIONS.EVENTS_WRITE), updateEvent)
   .delete(requirePermission(PERMISSIONS.EVENTS_DELETE), deleteEvent);
 
-module.exports = router;
+export default router;

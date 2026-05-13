@@ -1,4 +1,4 @@
-const { ROLES } = require('../constants/roles');
+import { ROLES } from '../constants/roles.js';
 
 const isLegacyRoute = (req) => {
   const legacyPrefixes = [
@@ -44,4 +44,4 @@ const coachBatchFilter = (req, base = {}) => {
   return filter;
 };
 
-module.exports = { scopedFilter, scopedPayload, coachStudentFilter, coachBatchFilter };
+export { scopedFilter, scopedPayload, coachStudentFilter, coachBatchFilter };

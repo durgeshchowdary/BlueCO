@@ -1,10 +1,10 @@
-const Student = require('../models/Student');
-const Coach = require('../models/Coach');
-const Batch = require('../models/Batch');
-const Attendance = require('../models/Attendance');
-const Payment = require('../models/Payment');
-const Event = require('../models/Event');
-const { scopedFilter } = require('../utils/scope');
+import Student from '../models/Student.js';
+import Coach from '../models/Coach.js';
+import Batch from '../models/Batch.js';
+import Attendance from '../models/Attendance.js';
+import Payment from '../models/Payment.js';
+import Event from '../models/Event.js';
+import { scopedFilter } from '../utils/scope.js';
 
 const getDashboardSummary = async (req, res, next) => {
   try {
@@ -154,4 +154,4 @@ const getDashboardSummary = async (req, res, next) => {
   }
 };
 
-module.exports = { getDashboardSummary };
+export { getDashboardSummary };

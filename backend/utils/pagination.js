@@ -16,7 +16,7 @@ const paginatedResponse = ({ data, total, page, limit }) => ({
   },
 });
 
-module.exports = {
+export {
   getPagination,
   paginatedResponse,
 };

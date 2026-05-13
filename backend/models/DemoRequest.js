@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const demoRequestSchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -14,4 +14,4 @@ const demoRequestSchema = new mongoose.Schema({
 demoRequestSchema.index({ createdAt: -1 });
 demoRequestSchema.index({ status: 1, createdAt: -1 });
 
-module.exports = mongoose.model('DemoRequest', demoRequestSchema);
+export default mongoose.model('DemoRequest', demoRequestSchema);

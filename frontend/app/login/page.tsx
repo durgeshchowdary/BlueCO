@@ -1,215 +1,261 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { FormEvent, useState } from 'react';
-import axios from 'axios';
-import { motion } from 'framer-motion';
-import { ArrowRight, Building2, Crown, KeyRound, Mail, ShieldCheck, UserRound, Wallet } from 'lucide-react';
-import SecurityNotice from '@/components/auth/SecurityNotice';
-import { validatePassword } from '@/lib/passwordValidation';
-import api, { API_BASE_URL } from '../../lib/api';
-import { roleHome, setAuthSession, type Role } from '../../lib/auth';
+import { useState } from "react";
+import Link from "next/link";
 import {
-  AuthCard,
-  AuthFooterNote,
-  AuthHeader,
-  AuthInput,
-  AuthMiniStat,
-  AuthShell,
-  PrimaryAuthButton,
-  TrustStrip,
-} from '@/components/auth/AuthShell';
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  Shield,
+  Building2,
+  UserCog,
+  GraduationCap,
+} from "lucide-react";
 
-const legacyDemoDomain = ['play', 'grid.ai'].join('');
-const legacyDemoPassword = ['Play', 'Grid@123'].join('');
+type PortalType = "super-admin" | "academy" | "employee" | "student";
 
-const seedLogins = [
-  { label: 'Super Admin', email: `super@${legacyDemoDomain}`, password: legacyDemoPassword, displayEmail: 'super@outplay.in', displayPassword: 'outplay@123', icon: Crown, tone: 'bg-purple-50 text-purple-600 border-purple-100' },
-  { label: 'Academy Admin', email: 'admin@vijayawadablues.in', password: legacyDemoPassword, displayEmail: 'admin@outplay.in', displayPassword: 'outplay@123', icon: Building2, tone: 'bg-emerald-50 text-emerald-600 border-emerald-100' },
-  { label: 'Coach', email: 'coach@vijayawadablues.in', password: legacyDemoPassword, displayEmail: 'coach@outplay.in', displayPassword: 'outplay@123', icon: ShieldCheck, tone: 'bg-blue-50 text-blue-600 border-blue-100' },
-  { label: 'Accountant', email: 'accountant@vijayawadablues.in', password: legacyDemoPassword, displayEmail: 'accounts@outplay.in', displayPassword: 'outplay@123', icon: Wallet, tone: 'bg-orange-50 text-orange-600 border-orange-100' },
-  { label: 'User', email: `user@${legacyDemoDomain}`, password: legacyDemoPassword, displayEmail: 'user@outplay.in', displayPassword: 'outplay@123', icon: UserRound, tone: 'bg-cyan-50 text-cyan-600 border-cyan-100' },
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+
+const portals = [
+  {
+    id: "super-admin" as PortalType,
+    title: "Super Admin",
+    subtitle: "Platform control",
+    icon: Shield,
+  },
+  {
+    id: "academy" as PortalType,
+    title: "Academy Admin",
+    subtitle: "Academy management",
+    icon: Building2,
+  },
+  {
+    id: "employee" as PortalType,
+    title: "Employee",
+    subtitle: "Staff operations",
+    icon: UserCog,
+  },
+  {
+    id: "student" as PortalType,
+    title: "Student",
+    subtitle: "Training portal",
+    icon: GraduationCap,
+  },
 ];
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [selectedPortal, setSelectedPortal] =
+    useState<PortalType>("student");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
+  const clearOldSession = () => {
+    localStorage.clear();
+
+    document.cookie =
+      "role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie =
+      "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie =
+      "user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie =
+      "portalType=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+  };
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError('');
+
+    clearOldSession();
     setLoading(true);
 
+    const formData = new FormData(e.currentTarget);
+
+    const payload = {
+      email: String(formData.get("email") || "").trim().toLowerCase(),
+      password: String(formData.get("password") || ""),
+      portalType: selectedPortal,
+    };
+
     try {
-      const requestBody = { email, password };
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log('[OUT-PLAY Login] POST', `${API_BASE_URL}/auth/login`, requestBody);
-      }
-
-      const response = await api.post('/auth/login', requestBody);
-      const data = response.data || {};
-      const token = data.token;
-      const user = data.user || {};
-      const role = user.role || data.role;
-      const permissions = user.effectivePermissions || user.permissions || data.effectivePermissions || data.permissions || [];
-      const redirectTo = data.redirectTo || roleHome[role as Role] || '/login';
-
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.log('[OUT-PLAY Login] response', response.status, data);
-      }
-
-      if (!token || !role) {
-        throw new Error('Login response missing token or role');
-      }
-
-      const normalizedUser = {
-        ...user,
-        role,
-        permissions,
-        effectivePermissions: permissions,
-      };
-
-      setAuthSession({
-        token,
-        user: normalizedUser,
-        role: role as Role,
-        permissions,
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
       });
-      window.location.href = redirectTo;
-    } catch (err) {
-      const status = axios.isAxiosError(err) ? err.response?.status : undefined;
-      const backendMessage = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
-      const detail = backendMessage || (err instanceof Error ? err.message : 'Unknown login error');
 
-      if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.error('[OUT-PLAY Login] failed', {
-          baseURL: API_BASE_URL,
-          path: '/auth/login',
-          status,
-          response: axios.isAxiosError(err) ? err.response?.data : undefined,
-          message: detail,
-        });
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || "Login failed");
+        return;
       }
 
-      setError(`Login failed${status ? ` (${status})` : ''}: ${detail}`);
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("role", data.user.role);
+      localStorage.setItem("portalType", data.user.portalType);
+
+      document.cookie = `token=${data.token}; path=/`;
+      document.cookie = `role=${data.user.role}; path=/`;
+      document.cookie = `portalType=${data.user.portalType}; path=/`;
+
+      window.location.replace(data.redirectTo);
+    } catch {
+      alert("Backend not connected. Check backend server and NEXT_PUBLIC_API_URL.");
+    } finally {
       setLoading(false);
     }
   };
 
+  const selectedPortalLabel =
+    portals.find((portal) => portal.id === selectedPortal)?.title || "Student";
+
   return (
-    <AuthShell
-      eyebrow="Secure academy access"
-      title="Welcome back to OUT-PLAY"
-      subtitle="Access your academy management dashboard with a premium, secure workspace for operations, coaching and billing."
-    >
-      <AuthCard>
-        <AuthHeader
-          eyebrow="Welcome back"
-          title="Login to OUT-PLAY"
-          subtitle="Access your academy management dashboard"
-        />
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-r from-[#f8f7ec] to-slate-100 px-6 py-10">
+      <div className="w-full max-w-2xl">
+        <Link
+          href="/"
+          className="mb-8 inline-flex items-center gap-2 text-slate-600 transition hover:text-black"
+        >
+          <ArrowLeft size={18} />
+          Back to home
+        </Link>
 
-        <form onSubmit={handleLogin} className="mt-8 space-y-5">
-          <AuthInput
-            id="email"
-            required
-            type="email"
-            label="Email"
-            icon={Mail}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="admin@vijayawadablues.in"
-            autoComplete="email"
-          />
-
-          <div>
-            <AuthInput
-              id="password"
-              required
-              type="password"
-              label="Password"
-              icon={KeyRound}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              autoComplete="current-password"
-            />
-            <div className="mt-2 flex justify-end">
-              <Link href="/forgot-password" className="text-sm font-bold text-emerald-700 hover:text-emerald-800">
-                Forgot password?
-              </Link>
-            </div>
+        <div className="mb-8 flex items-center justify-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-200 bg-white shadow-sm">
+            <span className="text-[10px] font-black text-red-500">OUT</span>
           </div>
 
-          <PrimaryAuthButton loading={loading}>
-            {loading ? 'Signing in...' : 'Sign in'}
-            {!loading ? <ArrowRight size={18} /> : null}
-          </PrimaryAuthButton>
-        </form>
-        <SecurityNotice />
+          <h1 className="text-5xl font-black text-[#17223b]">Out-Play</h1>
+        </div>
 
-        {error ? (
-          <p className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
-            {error}
-          </p>
-        ) : null}
+        <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-2xl md:p-10">
+          <div className="text-center">
+            <h2 className="text-4xl font-black text-[#17223b]">
+              Welcome back
+            </h2>
 
-        <TrustStrip />
-
-        <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="font-black text-slate-950">Seed logins</p>
-              <p className="mt-1 text-xs font-semibold text-slate-500">Choose a role to fill demo credentials.</p>
-            </div>
-            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-black text-emerald-700">Demo</span>
+            <p className="mt-3 text-lg text-slate-500">
+              Choose your portal and sign in
+            </p>
           </div>
-          <div className="mt-4 grid gap-2">
-            {seedLogins.map((login) => {
-              const Icon = login.icon;
+
+          <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {portals.map((portal) => {
+              const Icon = portal.icon;
+              const active = selectedPortal === portal.id;
 
               return (
-                <motion.button
-                  key={login.email}
+                <button
+                  key={portal.id}
                   type="button"
-                  whileHover={{ y: -2 }}
-                  whileTap={{ scale: 0.99 }}
-                  onClick={() => {
-                    setEmail(login.email);
-                    setPassword(login.password);
-                  }}
-                  className="flex w-full items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 px-3 py-3 text-left transition hover:border-emerald-200 hover:bg-white hover:shadow-sm"
+                  onClick={() => setSelectedPortal(portal.id)}
+                  className={`rounded-2xl border p-4 text-left transition ${
+                    active
+                      ? "border-emerald-500 bg-emerald-50 shadow-md ring-2 ring-emerald-100"
+                      : "border-slate-200 bg-white hover:border-emerald-300 hover:bg-slate-50"
+                  }`}
                 >
-                  <span className="flex min-w-0 items-center gap-3">
-                    <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border ${login.tone}`}>
-                      <Icon size={18} />
-                    </span>
-                    <span>
-                      <span className="block font-black text-slate-900">{login.label}</span>
-                      <span className="block text-xs font-semibold text-slate-500">{login.displayEmail} / {login.displayPassword}</span>
-                    </span>
-                  </span>
-                  <ArrowRight size={17} className="shrink-0 text-slate-400" />
-                </motion.button>
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`flex h-11 w-11 items-center justify-center rounded-xl ${
+                        active
+                          ? "bg-emerald-600 text-white"
+                          : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      <Icon size={21} />
+                    </div>
+
+                    <div>
+                      <p className="font-black text-[#17223b]">
+                        {portal.title}
+                      </p>
+                      <p className="text-sm font-medium text-slate-500">
+                        {portal.subtitle}
+                      </p>
+                    </div>
+                  </div>
+                </button>
               );
             })}
           </div>
+
+          <form onSubmit={handleLogin} className="mt-8">
+            <div className="mb-5 rounded-2xl bg-slate-100 px-5 py-4 text-sm font-bold text-slate-700">
+              Selected Portal:{" "}
+              <span className="text-emerald-700">
+                {selectedPortalLabel}
+              </span>
+            </div>
+
+            <div>
+              <label className="mb-3 block text-sm font-bold text-slate-700">
+                Email
+              </label>
+
+              <input
+                name="email"
+                type="email"
+                required
+                placeholder="you@academy.com"
+                className="h-14 w-full rounded-2xl border border-slate-300 px-5 text-lg outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+              />
+            </div>
+
+            <div className="mt-6">
+              <div className="mb-3 flex items-center justify-between">
+                <label className="text-sm font-bold text-slate-700">
+                  Password
+                </label>
+
+                <Link
+                  href="/forgot-password"
+                  className="text-sm font-semibold text-emerald-600"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
+              <div className="relative">
+                <input
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  placeholder="Enter your password"
+                  className="h-14 w-full rounded-2xl border border-slate-300 px-5 pr-14 text-lg outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-100"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-8 h-14 w-full rounded-2xl bg-emerald-600 text-xl font-black text-white shadow-lg transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Signing In..." : `Sign In to ${selectedPortalLabel}`}
+            </button>
+          </form>
+
+          <p className="mt-8 text-center text-lg text-slate-500">
+            Don&apos;t have an account?{" "}
+            <Link href="/signup" className="font-bold text-emerald-600">
+              Sign up
+            </Link>
+          </p>
         </div>
-
-        <AuthMiniStat />
-
-        <AuthFooterNote>
-          New here?{' '}
-          <Link href="/signup" className="font-black text-emerald-700 hover:text-emerald-800">
-            Create account
-          </Link>
-        </AuthFooterNote>
-      </AuthCard>
-    </AuthShell>
+      </div>
+    </main>
   );
 }

@@ -1,6 +1,6 @@
-const Announcement = require('../models/Announcement');
-const { getPagination, paginatedResponse } = require('../utils/pagination');
-const { scopedFilter, scopedPayload } = require('../utils/scope');
+import Announcement from '../models/Announcement.js';
+import { getPagination, paginatedResponse } from '../utils/pagination.js';
+import { scopedFilter, scopedPayload } from '../utils/scope.js';
 
 const decorateAnnouncement = (announcement) => {
   const item = announcement.toObject ? announcement.toObject() : announcement;
@@ -73,7 +73,7 @@ const markAllRead = async (req, res, next) => {
   }
 };
 
-module.exports = {
+export {
   getAnnouncements,
   createAnnouncement,
   updateAnnouncement,

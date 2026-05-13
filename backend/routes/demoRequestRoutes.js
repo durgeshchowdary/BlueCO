@@ -1,8 +1,8 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const { createDemoRequest, getDemoRequests } = require('../controllers/demoRequestController');
+import { createDemoRequest, getDemoRequests } from '../controllers/demoRequestController.js';
 
-router.post('/', createDemoRequest);
-router.get('/', getDemoRequests);
+router.post('/', createDemoRequest); // Use .js extension for local imports
+router.get('/', getDemoRequests); // Use .js extension for local imports
 
-module.exports = router;
+export default router;

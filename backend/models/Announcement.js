@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const announcementSchema = new mongoose.Schema(
   {
@@ -32,4 +32,4 @@ announcementSchema.index({ createdAt: -1 });
 announcementSchema.index({ academyId: 1, createdAt: -1 });
 announcementSchema.index({ read: 1, priority: 1 });
 
-module.exports = mongoose.model('Announcement', announcementSchema);
+export default mongoose.model('Announcement', announcementSchema);

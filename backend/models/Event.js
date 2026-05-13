@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const eventSchema = new mongoose.Schema({
   academyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Academy', index: true },
@@ -18,4 +18,4 @@ const eventSchema = new mongoose.Schema({
 eventSchema.index({ date: 1 });
 eventSchema.index({ academyId: 1, date: 1 });
 
-module.exports = mongoose.model('Event', eventSchema);
+export default mongoose.model('Event', eventSchema);
