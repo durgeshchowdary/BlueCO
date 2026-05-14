@@ -321,8 +321,9 @@ export default function SuperAdminLayout({
 
         {/* PAGE */}
 
-        <main>{children}</main>
-      </div>
+<main className="min-h-[calc(100vh-78px)] bg-[#fffdf0] text-[#061739]">
+  {children}
+</main>      </div>
     </div>
   );
 }

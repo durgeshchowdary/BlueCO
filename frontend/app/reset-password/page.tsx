@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import Link from 'next/link';
 import { FormEvent, useState } from 'react';
@@ -79,7 +79,7 @@ export default function ResetPasswordPage() {
           {validationErrors.length > 0 && password.length > 0 ? (
             <ul className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-700">
               {validationErrors.map((error) => (
-                <li key={error}>{error}</li>
+                <li key={error}>• {error}</li>
               ))}
             </ul>
           ) : null}

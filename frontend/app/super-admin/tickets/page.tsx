@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertCircle,
   CheckCircle,
@@ -8,24 +8,32 @@ import {
   Inbox,
   MessageSquare,
   Plus,
+  RefreshCw,
   Send,
   X,
 } from "lucide-react";
+import api from "../../../lib/api";
 
-type TicketStatus = "open" | "progress" | "resolved";
+type TicketStatus = "Open" | "In Progress" | "Resolved";
+
 type Ticket = {
+  _id?: string;
   id: string;
   category: string;
   priority: string;
   subject: string;
   message: string;
+  requester?: string;
   status: TicketStatus;
+  createdAt?: string;
 };
 
 export default function TicketsPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState({
     category: "general",
@@ -34,38 +42,98 @@ export default function TicketsPage() {
     message: "",
   });
 
+  const fetchTickets = async () => {
+    try {
+      setLoading(true);
+
+      const res = await api.get("/super-admin/platform-tickets");
+
+      const liveTickets: Ticket[] = (res.data?.tickets || []).map(
+        (ticket: any) => ({
+          ...ticket,
+          id: ticket._id || ticket.id,
+          status:
+            ticket.status === "progress"
+              ? "In Progress"
+              : ticket.status === "resolved"
+              ? "Resolved"
+              : ticket.status === "Open" ||
+                ticket.status === "In Progress" ||
+                ticket.status === "Resolved"
+              ? ticket.status
+              : "Open",
+        })
+      );
+
+      setTickets(liveTickets);
+      setSelectedTicket((prev) =>
+        prev ? liveTickets.find((t) => t.id === prev.id) || null : null
+      );
+    } catch (err) {
+      console.error(err);
+      setTickets([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTickets();
+  }, []);
+
   const counts = useMemo(
     () => ({
-      open: tickets.filter((t) => t.status === "open").length,
-      progress: tickets.filter((t) => t.status === "progress").length,
-      resolved: tickets.filter((t) => t.status === "resolved").length,
+      open: tickets.filter((t) => t.status === "Open").length,
+      progress: tickets.filter((t) => t.status === "In Progress").length,
+      resolved: tickets.filter((t) => t.status === "Resolved").length,
       total: tickets.length,
     }),
     [tickets]
   );
 
-  const submitTicket = () => {
+  const submitTicket = async () => {
     if (!form.subject.trim() || !form.message.trim()) return;
 
-    const newTicket: Ticket = {
-      id: `TCK-${String(Date.now()).slice(-5)}`,
-      category: form.category,
-      priority: form.priority,
-      subject: form.subject,
-      message: form.message,
-      status: "open",
-    };
+    try {
+      setSubmitting(true);
 
-    setTickets((prev) => [newTicket, ...prev]);
-    setSelectedTicket(newTicket);
-    setShowModal(false);
+      await api.post("/tickets", {
+        category: form.category,
+        priority: form.priority,
+        subject: form.subject,
+        message: form.message,
+        requester: "Super Admin",
+        status: "Open",
+      });
 
-    setForm({
-      category: "general",
-      priority: "medium",
-      subject: "",
-      message: "",
-    });
+      setShowModal(false);
+      setForm({
+        category: "general",
+        priority: "medium",
+        subject: "",
+        message: "",
+      });
+
+      await fetchTickets();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const updateTicketStatus = async (ticket: Ticket, status: TicketStatus) => {
+    try {
+      await api.put(`/tickets/${ticket.id}`, { status });
+
+      setTickets((prev) =>
+        prev.map((t) => (t.id === ticket.id ? { ...t, status } : t))
+      );
+
+      setSelectedTicket({ ...ticket, status });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -76,150 +144,135 @@ export default function TicketsPage() {
             Tickets
           </h1>
           <p className="mt-1 text-[14px] text-[#536987]">
-            Manage all academy tickets & notifications
+            Live platform-wide support tickets
           </p>
         </div>
 
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex h-[38px] items-center gap-2 rounded-xl bg-[#00796b] px-4 text-[13px] font-bold text-white shadow-sm hover:bg-[#006b5f]"
-        >
-          <Plus size={15} />
-          New Ticket
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={fetchTickets}
+            className="flex h-[38px] items-center gap-2 rounded-xl border border-[#d8e0ec] bg-white px-4 text-[13px] font-bold shadow-sm"
+          >
+            <RefreshCw size={15} />
+            Refresh
+          </button>
+
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex h-[38px] items-center gap-2 rounded-xl bg-[#00796b] px-4 text-[13px] font-bold text-white shadow-sm hover:bg-[#006b5f]"
+          >
+            <Plus size={15} />
+            New Ticket
+          </button>
+        </div>
       </div>
 
       <section className="mb-6 grid grid-cols-4 gap-4">
-        <StatCard
-          label="Open"
-          value={counts.open}
-          icon={<AlertCircle size={16} className="text-blue-500" />}
-        />
-        <StatCard
-          label="In Progress"
-          value={counts.progress}
-          icon={<Clock size={16} className="text-amber-500" />}
-        />
-        <StatCard
-          label="Resolved"
-          value={counts.resolved}
-          icon={<CheckCircle size={16} className="text-emerald-500" />}
-        />
-        <StatCard
-          label="Total"
-          value={counts.total}
-          icon={<Inbox size={16} className="text-[#536987]" />}
-        />
+        <StatCard label="Open" value={counts.open} icon={<AlertCircle size={16} className="text-blue-500" />} />
+        <StatCard label="In Progress" value={counts.progress} icon={<Clock size={16} className="text-amber-500" />} />
+        <StatCard label="Resolved" value={counts.resolved} icon={<CheckCircle size={16} className="text-emerald-500" />} />
+        <StatCard label="Total" value={counts.total} icon={<Inbox size={16} className="text-[#536987]" />} />
       </section>
 
-      <section className="grid grid-cols-[420px_1fr] gap-4">
-        <div className="min-h-[260px] rounded-2xl border border-[#d8e0ec] bg-[#f8fbff] p-6 shadow-sm">
-          <h2 className="mb-5 text-[16px] font-extrabold">Tickets</h2>
-
-          {tickets.length === 0 ? (
-            <div className="flex h-[180px] flex-col items-center justify-center text-center">
-              <MessageSquare size={42} className="text-[#c2cbd8]" />
-              <p className="mt-4 text-[14px] text-[#536987]">
-                No tickets yet
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {tickets.map((ticket) => (
-                <button
-                  key={ticket.id}
-                  onClick={() => setSelectedTicket(ticket)}
-                  className={`w-full rounded-xl border p-4 text-left transition ${
-                    selectedTicket?.id === ticket.id
-                      ? "border-[#00897b] bg-[#fffdf0]"
-                      : "border-[#d8e0ec] bg-white hover:bg-slate-50"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-[14px] font-extrabold">
-                      {ticket.subject}
-                    </h3>
-                    <span className="rounded-full bg-blue-100 px-2 py-1 text-[10px] font-bold text-blue-700">
-                      {ticket.status}
-                    </span>
-                  </div>
-                  <p className="mt-2 line-clamp-2 text-[12px] text-[#536987]">
-                    {ticket.message}
-                  </p>
-                </button>
-              ))}
-            </div>
-          )}
+      {loading ? (
+        <div className="rounded-2xl border bg-white p-6 font-bold text-[#00796b]">
+          Loading live tickets...
         </div>
+      ) : (
+        <section className="grid grid-cols-[420px_1fr] gap-4">
+          <div className="min-h-[260px] rounded-2xl border border-[#d8e0ec] bg-[#f8fbff] p-6 shadow-sm">
+            <h2 className="mb-5 text-[16px] font-extrabold">Tickets</h2>
 
-        <div className="min-h-[260px] rounded-2xl border border-[#d8e0ec] bg-[#f8fbff] p-6 shadow-sm">
-          {selectedTicket ? (
-            <div>
-              <div className="mb-4 flex items-center justify-between">
-                <div>
-                  <h2 className="text-[18px] font-extrabold">
-                    {selectedTicket.subject}
-                  </h2>
-                  <p className="mt-1 text-[13px] text-[#536987]">
-                    {selectedTicket.id} · {selectedTicket.category} ·{" "}
-                    {selectedTicket.priority}
-                  </p>
+            {tickets.length === 0 ? (
+              <div className="flex h-[180px] flex-col items-center justify-center text-center">
+                <MessageSquare size={42} className="text-[#c2cbd8]" />
+                <p className="mt-4 text-[14px] text-[#536987]">
+                  No tickets yet
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {tickets.map((ticket) => (
+                  <button
+                    key={ticket.id}
+                    onClick={() => setSelectedTicket(ticket)}
+                    className={`w-full rounded-xl border p-4 text-left transition ${
+                      selectedTicket?.id === ticket.id
+                        ? "border-[#00897b] bg-[#fffdf0]"
+                        : "border-[#d8e0ec] bg-white hover:bg-slate-50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-[14px] font-extrabold">
+                        {ticket.subject}
+                      </h3>
+                      <StatusPill status={ticket.status} />
+                    </div>
+
+                    <p className="mt-2 line-clamp-2 text-[12px] text-[#536987]">
+                      {ticket.message}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="min-h-[260px] rounded-2xl border border-[#d8e0ec] bg-[#f8fbff] p-6 shadow-sm">
+            {selectedTicket ? (
+              <div>
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-[18px] font-extrabold">
+                      {selectedTicket.subject}
+                    </h2>
+                    <p className="mt-1 text-[13px] text-[#536987]">
+                      {selectedTicket.id} · {selectedTicket.category} ·{" "}
+                      {selectedTicket.priority}
+                    </p>
+                  </div>
+
+                  <StatusPill status={selectedTicket.status} />
                 </div>
 
-                <span className="rounded-full bg-blue-100 px-3 py-1 text-[12px] font-bold text-blue-700">
-                  {selectedTicket.status}
-                </span>
-              </div>
+                <div className="rounded-xl border border-[#d8e0ec] bg-white p-4 text-[14px] leading-6 text-[#334155]">
+                  {selectedTicket.message}
+                </div>
 
-              <div className="rounded-xl border border-[#d8e0ec] bg-white p-4 text-[14px] leading-6 text-[#334155]">
-                {selectedTicket.message}
-              </div>
+                <div className="mt-4 flex gap-3">
+                  <button
+                    onClick={() =>
+                      updateTicketStatus(selectedTicket, "In Progress")
+                    }
+                    className="rounded-xl border bg-white px-4 py-2 text-[13px] font-bold"
+                  >
+                    Mark In Progress
+                  </button>
 
-              <div className="mt-4 flex gap-3">
-                <button
-                  onClick={() =>
-                    setTickets((prev) =>
-                      prev.map((t) =>
-                        t.id === selectedTicket.id
-                          ? { ...t, status: "progress" }
-                          : t
-                      )
-                    )
-                  }
-                  className="rounded-xl border bg-white px-4 py-2 text-[13px] font-bold"
-                >
-                  Mark In Progress
-                </button>
-
-                <button
-                  onClick={() =>
-                    setTickets((prev) =>
-                      prev.map((t) =>
-                        t.id === selectedTicket.id
-                          ? { ...t, status: "resolved" }
-                          : t
-                      )
-                    )
-                  }
-                  className="rounded-xl bg-[#00796b] px-4 py-2 text-[13px] font-bold text-white"
-                >
-                  Resolve
-                </button>
+                  <button
+                    onClick={() =>
+                      updateTicketStatus(selectedTicket, "Resolved")
+                    }
+                    className="rounded-xl bg-[#00796b] px-4 py-2 text-[13px] font-bold text-white"
+                  >
+                    Resolve
+                  </button>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="flex h-[210px] flex-col items-center justify-center text-center">
-              <MessageSquare size={52} className="text-[#c2cbd8]" />
-              <h2 className="mt-5 text-[17px] font-extrabold">
-                Select a ticket
-              </h2>
-              <p className="mt-2 text-[14px] text-[#536987]">
-                Click on a ticket to view details and respond
-              </p>
-            </div>
-          )}
-        </div>
-      </section>
+            ) : (
+              <div className="flex h-[210px] flex-col items-center justify-center text-center">
+                <MessageSquare size={52} className="text-[#c2cbd8]" />
+                <h2 className="mt-5 text-[17px] font-extrabold">
+                  Select a ticket
+                </h2>
+                <p className="mt-2 text-[14px] text-[#536987]">
+                  Click on a ticket to view details and respond
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {showModal && (
         <div
@@ -311,15 +364,32 @@ export default function TicketsPage() {
 
             <button
               onClick={submitTicket}
-              className="mt-5 flex h-[44px] w-full items-center justify-center gap-3 rounded-xl bg-[#00796b] text-[14px] font-extrabold text-white shadow-sm hover:bg-[#006b5f]"
+              disabled={submitting}
+              className="mt-5 flex h-[44px] w-full items-center justify-center gap-3 rounded-xl bg-[#00796b] text-[14px] font-extrabold text-white shadow-sm hover:bg-[#006b5f] disabled:opacity-60"
             >
               <Send size={16} />
-              Submit Ticket
+              {submitting ? "Submitting..." : "Submit Ticket"}
             </button>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+function StatusPill({ status }: { status: TicketStatus }) {
+  return (
+    <span
+      className={`rounded-full px-3 py-1 text-[11px] font-bold ${
+        status === "Resolved"
+          ? "bg-emerald-100 text-emerald-700"
+          : status === "In Progress"
+          ? "bg-amber-100 text-amber-700"
+          : "bg-blue-100 text-blue-700"
+      }`}
+    >
+      {status}
+    </span>
   );
 }
 

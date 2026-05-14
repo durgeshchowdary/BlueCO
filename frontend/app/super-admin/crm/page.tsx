@@ -1,15 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Grid2X2,
   List,
   Plus,
+  RefreshCw,
   Search,
   Users,
   X,
-  ChevronDown,
 } from "lucide-react";
+import api from "../../../lib/api";
 
 type ViewMode = "kanban" | "list";
 
@@ -21,6 +22,7 @@ type Stage =
   | "Enrolled";
 
 type Prospect = {
+  _id?: string;
   id: string;
   name: string;
   phone: string;
@@ -47,6 +49,7 @@ export default function CRMPage() {
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [search, setSearch] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
     name: "",
@@ -60,6 +63,29 @@ export default function CRMPage() {
     notes: "",
   });
 
+  const loadProspects = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/super-admin/crm");
+
+      setProspects(
+        (res.data?.prospects || []).map((p: any) => ({
+          ...p,
+          id: p._id || p.id,
+        }))
+      );
+    } catch (err) {
+      console.log(err);
+      setProspects([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadProspects();
+  }, []);
+
   const filteredProspects = useMemo(() => {
     if (!search.trim()) return prospects;
 
@@ -67,44 +93,40 @@ export default function CRMPage() {
 
     return prospects.filter(
       (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.phone.toLowerCase().includes(q) ||
-        p.email.toLowerCase().includes(q) ||
-        p.parent.toLowerCase().includes(q)
+        String(p.name || "").toLowerCase().includes(q) ||
+        String(p.phone || "").toLowerCase().includes(q) ||
+        String(p.email || "").toLowerCase().includes(q) ||
+        String(p.parent || "").toLowerCase().includes(q)
     );
   }, [prospects, search]);
 
-  const addProspect = () => {
+  const addProspect = async () => {
     if (!form.name.trim() || !form.phone.trim()) return;
 
-    const newProspect: Prospect = {
-      id: `PROS-${Date.now()}`,
-      name: form.name,
-      phone: form.phone,
-      email: form.email,
-      parent: form.parent,
-      ageGroup: form.ageGroup,
-      sport: form.sport,
-      source: form.source,
-      interest: form.interest,
-      notes: form.notes,
-      stage: "Inquiry",
-    };
+    try {
+      await api.post("/super-admin/crm", {
+        ...form,
+        stage: "Inquiry",
+      });
 
-    setProspects((prev) => [newProspect, ...prev]);
-    setShowModal(false);
+      setShowModal(false);
 
-    setForm({
-      name: "",
-      phone: "",
-      email: "",
-      parent: "",
-      ageGroup: "",
-      sport: "Football",
-      source: "Direct",
-      interest: "",
-      notes: "",
-    });
+      setForm({
+        name: "",
+        phone: "",
+        email: "",
+        parent: "",
+        ageGroup: "",
+        sport: "Football",
+        source: "Direct",
+        interest: "",
+        notes: "",
+      });
+
+      loadProspects();
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
@@ -120,6 +142,14 @@ export default function CRMPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            onClick={loadProspects}
+            className="flex h-[38px] items-center gap-2 rounded-xl border border-[#d8e0ec] bg-white px-4 text-[13px] font-bold shadow-sm"
+          >
+            <RefreshCw size={15} />
+            Refresh
+          </button>
+
           <div className="flex rounded-2xl bg-[#edf1f6] p-1">
             <button
               onClick={() => setView("kanban")}
@@ -186,7 +216,11 @@ export default function CRMPage() {
         />
       </div>
 
-      {view === "kanban" ? (
+      {loading ? (
+        <section className="rounded-2xl border border-[#d8e0ec] bg-white p-6 font-bold text-[#00796b]">
+          Loading live CRM prospects...
+        </section>
+      ) : view === "kanban" ? (
         <div className="grid grid-cols-5 gap-3">
           {stages.map((stage) => {
             const items = filteredProspects.filter(

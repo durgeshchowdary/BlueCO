@@ -59,7 +59,15 @@ function clearCookie(name: string) {
 
 export function getAuthToken() {
   if (typeof window === 'undefined') return null;
-  return getStoredValue('token') || getCookie('pg_token');
+
+  return (
+    getStoredValue('token') ||
+    getCookie('pg_token') ||
+    localStorage.getItem('token') ||
+    localStorage.getItem('authToken') ||
+    localStorage.getItem('pg_token') ||
+    localStorage.getItem('outplay_token')
+  );
 }
 
 export function getStoredRole(): Role | null {

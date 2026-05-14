@@ -19,4 +19,4 @@ export interface NotificationItem {
   variant: NotificationVariant;
   read: boolean;
   createdAt: number;
-}
+}   
