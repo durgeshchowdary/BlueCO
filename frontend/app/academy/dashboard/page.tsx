@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -19,7 +19,7 @@ import {
   X,
 } from "lucide-react";
 
-export default function AcademyDashboardPage() {
+function AcademyDashboardContent() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -282,5 +282,14 @@ function StatCard({
 
       <p className="mt-2 text-[14px] text-[#52657d]">{sub}</p>
     </div>
+  );
+}
+
+
+export default function AcademyDashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <AcademyDashboardContent />
+    </Suspense>
   );
 }

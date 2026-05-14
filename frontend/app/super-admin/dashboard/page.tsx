@@ -1,5 +1,7 @@
 "use client";
 
+import { Suspense } from "react";
+
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
@@ -40,7 +42,7 @@ const money = (value: number) => {
   return `₹${value || 0}`;
 };
 
-export default function SuperAdminDashboardPage() {
+function SuperAdminDashboardContent() {
   const searchParams = useSearchParams();
 
   const [data, setData] = useState<DashboardData | null>(null);
@@ -296,3 +298,17 @@ export default function SuperAdminDashboardPage() {
     </div>
   );
 }
+
+
+export default function SuperAdminDashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <SuperAdminDashboardContent />
+    </Suspense>
+  );
+}
+
+
+
+
+
